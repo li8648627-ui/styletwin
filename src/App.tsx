@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from './lib/supabase'
 import { AuthPage } from './components/pages/AuthPage'
 import { WardrobePage } from './components/WardrobePage'
+import { LooksPage } from './components/LooksPage'
 
 type Tab = 'today' | 'wardrobe' | 'tryon' | 'looks' | 'profile'
 
@@ -78,12 +79,7 @@ function App() {
           </>
         )}
 
-        {tab === 'looks' && (
-          <>
-            <h1 className="screen-title">Мои образы</h1>
-            <div className="card muted">Здесь появятся собранные образы.</div>
-          </>
-        )}
+        {tab === 'looks' && <LooksPage />}
 
         {tab === 'profile' && (
           <>
