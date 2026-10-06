@@ -10,6 +10,15 @@ type WardrobeItem = {
 
 const CATEGORIES = ['tops', 'bottoms', 'dresses', 'shoes', 'accessories']
 
+const CATEGORY_ICON: Record<string, string> = {
+  tops: '👕',
+  bottoms: '👖',
+  dresses: '👗',
+  shoes: '👟',
+  accessories: '👜',
+  other: '🧺',
+}
+
 export function WardrobePage() {
   const [items, setItems] = useState<WardrobeItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -63,37 +72,43 @@ export function WardrobePage() {
   }
 
   if (loading) {
-    return <div style={{ padding: '16px', color: '#888' }}>Открываем шкаф...</div>
+    return <div className="muted" style={{ padding: 16 }}>Открываем шкаф...</div>
   }
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 style={{ margin: 0 }}>Мой гардероб · вещей: {items.length}</h2>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          style={{ padding: '6px 12px', background: '#d946ef', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}
-        >
-          {showForm ? 'Скрыть' : '+ Добавить'}
+      <div className="row" style={{ marginBottom: 4 }}>
+        <h1 className="screen-title" style={{ margin: 0 }}>Гардероб</h1>
+        <span className="muted">Все {items.length} →</span>
+      </div>
+      <div className="muted" style={{ marginBottom: 12 }}>AI уберёт фон и приведёт к единому виду</div>
+
+      <div className="actions">
+        <button className="action-btn" onClick={() => setMessage('✂ Обработка фото появится вместе с камерой. Скоро!')}>
+          ✂ Обработать всё
+        </button>
+        <button className="action-btn" onClick={() => setShowForm(!showForm)}>
+          📥 {showForm ? 'Скрыть форму' : 'Добавить вещь'}
         </button>
       </div>
 
       {showForm && (
         <form
           onSubmit={handleAdd}
-          style={{ background: 'white', borderRadius: '8px', padding: '12px', margin: '12px 0', display: 'flex', flexDirection: 'column', gap: '8px' }}
+          className="card"
+          style={{ display: 'flex', flexDirection: 'column', gap: 8 }}
         >
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Название (например, Юбка миди)"
             required
-            style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }}
+            style={{ padding: 10, border: '1px solid #ddd', borderRadius: 6 }}
           />
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }}
+            style={{ padding: 10, border: '1px solid #ddd', borderRadius: 6 }}
           >
             {CATEGORIES.map((c) => (
               <option key={c} value={c}>{c}</option>
@@ -103,36 +118,41 @@ export function WardrobePage() {
             value={color}
             onChange={(e) => setColor(e.target.value)}
             placeholder="Цвет (например, black)"
-            style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '6px' }}
+            style={{ padding: 10, border: '1px solid #ddd', borderRadius: 6 }}
           />
           <button
             type="submit"
             disabled={saving}
-            style={{ padding: '10px', background: saving ? '#ccc' : '#111', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+            className="action-btn primary"
+            style={{ width: '100%' }}
           >
             {saving ? 'Сохраняем...' : 'Положить в шкаф'}
           </button>
-          {message && <div style={{ color: '#c00', fontSize: '14px' }}>{message}</div>}
         </form>
       )}
 
-      {items.length === 0 && (
-        <p style={{ color: '#888' }}>Пока пусто. Нажмите «+ Добавить», чтобы положить первую вещь!</p>
+      {message && <div className="card muted">{message}</div>}
+
+      {items.length === 0 ? (
+        <div className="card muted">Пока пусто. Нажмите «📥 Добавить вещь» — и она ляжет в облачный шкаф.</div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+          {items.map((item) => (
+            <div
+              key={item.id}
+              className="card"
+              style={{ marginBottom: 0, padding: 10, display: 'flex', flexDirection: 'column', gap: 4, minHeight: 96 }}
+            >
+              <div style={{ fontSize: 22 }}>{CATEGORY_ICON[item.category] ?? '🧺'}</div>
+              <div style={{ fontSize: 12, fontWeight: 600 }}>{item.name}</div>
+              <div className="muted" style={{ fontSize: 10 }}>
+                {item.category}
+                {item.color ? ` · ${item.color}` : ''}
+              </div>
+            </div>
+          ))}
+        </div>
       )}
-      <ul style={{ listStyle: 'none', padding: 0, margin: '12px 0 0 0', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        {items.map((item) => (
-          <li
-            key={item.id}
-            style={{ background: 'white', borderRadius: '8px', padding: '12px', display: 'flex', justifyContent: 'space-between', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}
-          >
-            <span>{item.name}</span>
-            <span style={{ color: '#888', fontSize: '12px' }}>
-              {item.category}
-              {item.color ? ` · ${item.color}` : ''}
-            </span>
-          </li>
-        ))}
-      </ul>
     </div>
   )
 }
