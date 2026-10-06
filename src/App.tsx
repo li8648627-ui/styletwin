@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from './lib/supabase'
 import { AuthPage } from './components/pages/AuthPage'
+import { WardrobePage } from './components/WardrobePage'
 
 function App() {
   const [session, setSession] = useState<any>(null)
@@ -42,7 +43,7 @@ function App() {
 
       <main style={{ flex: 1, padding: '16px' }}>
         {tab === 'today' && <h2>Что надеть сегодня? 👗</h2>}
-        {tab === 'wardrobe' && <h2>Мой гардероб (22 вещи)</h2>}
+        {tab === 'wardrobe' && <WardrobePage />}
         {tab === 'looks' && <h2>Мои образы</h2>}
         {tab === 'profile' && <h2>Профиль: {session.user.email}</h2>}
       </main>
