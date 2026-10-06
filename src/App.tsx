@@ -3,59 +3,119 @@ import { supabase } from './lib/supabase'
 import { AuthPage } from './components/pages/AuthPage'
 import { WardrobePage } from './components/WardrobePage'
 
+type Tab = 'today' | 'wardrobe' | 'tryon' | 'looks' | 'profile'
+
+const TABS: { id: Tab; icon: string; label: string }[] = [
+  { id: 'today', icon: '🌤', label: 'Сегодня' },
+  { id: 'wardrobe', icon: '🗄', label: 'Шкаф' },
+  { id: 'tryon', icon: '👗', label: 'Примерка' },
+  { id: 'looks', icon: '✨', label: 'Образы' },
+  { id: 'profile', icon: '👤', label: 'Профиль' },
+]
+
 function App() {
   const [session, setSession] = useState<any>(null)
   const [loading, setLoading] = useState(true)
-  const [tab, setTab] = useState('today')
+  const [tab, setTab] = useState<Tab>('today')
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
       setLoading(false)
     })
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session)
-    })
-
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => setSession(s))
     return () => subscription.unsubscribe()
   }, [])
 
-  if (loading) {
-    return <div style={{ padding: '20px', textAlign: 'center' }}>Загрузка...</div>
-  }
+  if (loading) return <div className="screen muted" style={{ padding: 24, textAlign: 'center' }}>Загрузка...</div>
+  if (!session) return <AuthPage />
 
-  if (!session) {
-    return <AuthPage />
-  }
+  const email: string = session.user?.email ?? ''
 
   return (
-    <div style={{ fontFamily: 'sans-serif', maxWidth: '400px', margin: '0 auto', minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#fafafa' }}>
-      <header style={{ padding: '16px', background: 'white', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1 style={{ margin: 0, fontSize: '20px' }}>StyleTwin</h1>
-        <button
-          onClick={() => supabase.auth.signOut()}
-          style={{ padding: '4px 8px', border: '1px solid #ccc', borderRadius: '12px', background: 'white', cursor: 'pointer' }}
-        >
-          Выход
-        </button>
-      </header>
+    <div className="phone">
+      <div className="statusbar"><span>9:41</span><span>📶 </span></div>
+      <div className="appbar">
+        <div className="brand">StyleTwin<sup>®</sup></div>
+        <span className="badge-free">FREE</span>
+      </div>
 
-      <main style={{ flex: 1, padding: '16px' }}>
-        {tab === 'today' && <h2>Что надеть сегодня? 👗</h2>}
+      <main className="screen">
+        {tab === 'today' && (
+          <>
+            <div className="weather">✳ 18° · дождь</div>
+            <div className="chips">
+              <span className="chip">офис</span>
+              <span className="chip">встреча 14:00</span>
+            </div>
+            <h1 className="screen-title">Что надеть сегодня</h1>
+            <div className="actions">
+              <button className="action-btn primary" onClick={() => setTab('tryon')}>✳ AI-примерка</button>
+              <button className="action-btn" onClick={() => setTab('wardrobe')}>＋ Гардероб</button>
+              <button className="action-btn" onClick={() => setTab('looks')}>❐ Мои образы</button>
+            </div>
+            <div className="card muted">Сегодня AI подберёт образ из вашего шкафа. Скоро!</div>
+          </>
+        )}
+
         {tab === 'wardrobe' && <WardrobePage />}
-        {tab === 'looks' && <h2>Мои образы</h2>}
-        {tab === 'profile' && <h2>Профиль: {session.user.email}</h2>}
+
+        {tab === 'tryon' && (
+          <>
+            <h1 className="screen-title">Примерка</h1>
+            <div className="muted" style={{ marginBottom: 12 }}>Одежда по фигуре · 360° · слои с иконками.</div>
+            <div className="card row">
+              <span>спереди</span>
+              <span className="muted">сзади</span>
+            </div>
+            <div className="card row">
+              <span>✳ Образ готов</span>
+              <span className="muted">0 / 5 слоёв</span>
+            </div>
+            <button className="action-btn primary" style={{ width: '100%' }}>✳ Примерить</button>
+          </>
+        )}
+
+        {tab === 'looks' && (
+          <>
+            <h1 className="screen-title">Мои образы</h1>
+            <div className="card muted">Здесь появятся собранные образы.</div>
+          </>
+        )}
+
+        {tab === 'profile' && (
+          <>
+            <h1 className="screen-title">Профиль</h1>
+            <div className="card row">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#111', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>
+                  {email.slice(0, 2).toUpperCase()}
+                </div>
+                <div>
+                  <div style={{ fontWeight: 600 }}>Анна К.</div>
+                  <div className="muted">{email}</div>
+                </div>
+              </div>
+            </div>
+            <div className="card row" onClick={() => setTab('wardrobe')} style={{ cursor: 'pointer' }}>
+              <span>Гардероб</span><span className="muted">→</span>
+            </div>
+            <div className="card row">
+              <span>Подписка</span><span className="muted">FREE →</span>
+            </div>
+            <div className="card row">
+              <span>Настройки</span><span className="muted">→</span>
+            </div>
+            <button className="action-btn" style={{ width: '100%' }} onClick={() => supabase.auth.signOut()}>Выйти</button>
+          </>
+        )}
       </main>
 
-      <nav style={{ background: 'white', borderTop: '1px solid #eee', display: 'flex', justifyContent: 'space-around', padding: '12px 0' }}>
-        {['today', 'wardrobe', 'looks', 'profile'].map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            style={{ background: 'none', border: 'none', color: tab === t ? '#d946ef' : '#888', fontWeight: tab === t ? 'bold' : 'normal', fontSize: '14px', cursor: 'pointer' }}
-          >
-            {t === 'today' ? 'Сегодня' : t === 'wardrobe' ? 'Шкаф' : t === 'looks' ? 'Образы' : 'Профиль'}
+      <nav className="tabbar">
+        {TABS.map((t) => (
+          <button key={t.id} className={`tab ${tab === t.id ? 'active' : ''}`} onClick={() => setTab(t.id)}>
+            <span className="tab-icon">{t.icon}</span>
+            <span>{t.label}</span>
           </button>
         ))}
       </nav>
