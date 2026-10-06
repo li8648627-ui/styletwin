@@ -28,6 +28,7 @@ export function WardrobePage() {
   const [color, setColor] = useState('')
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
+  const [cardIndex, setCardIndex] = useState<number | null>(null)
 
   const loadItems = () => {
     supabase
@@ -75,6 +76,8 @@ export function WardrobePage() {
     return <div className="muted" style={{ padding: 16 }}>Открываем шкаф...</div>
   }
 
+  const current = cardIndex !== null ? items[cardIndex] : null
+
   return (
     <div>
       <div className="row" style={{ marginBottom: 4 }}>
@@ -93,11 +96,7 @@ export function WardrobePage() {
       </div>
 
       {showForm && (
-        <form
-          onSubmit={handleAdd}
-          className="card"
-          style={{ display: 'flex', flexDirection: 'column', gap: 8 }}
-        >
+        <form onSubmit={handleAdd} className="card" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -120,12 +119,7 @@ export function WardrobePage() {
             placeholder="Цвет (например, black)"
             style={{ padding: 10, border: '1px solid #ddd', borderRadius: 6 }}
           />
-          <button
-            type="submit"
-            disabled={saving}
-            className="action-btn primary"
-            style={{ width: '100%' }}
-          >
+          <button type="submit" disabled={saving} className="action-btn primary" style={{ width: '100%' }}>
             {saving ? 'Сохраняем...' : 'Положить в шкаф'}
           </button>
         </form>
@@ -137,11 +131,12 @@ export function WardrobePage() {
         <div className="card muted">Пока пусто. Нажмите «📥 Добавить вещь» — и она ляжет в облачный шкаф.</div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
-          {items.map((item) => (
+          {items.map((item, i) => (
             <div
               key={item.id}
               className="card"
-              style={{ marginBottom: 0, padding: 10, display: 'flex', flexDirection: 'column', gap: 4, minHeight: 96 }}
+              onClick={() => setCardIndex(i)}
+              style={{ marginBottom: 0, padding: 10, display: 'flex', flexDirection: 'column', gap: 4, minHeight: 96, cursor: 'pointer' }}
             >
               <div style={{ fontSize: 22 }}>{CATEGORY_ICON[item.category] ?? '🧺'}</div>
               <div style={{ fontSize: 12, fontWeight: 600 }}>{item.name}</div>
@@ -151,6 +146,33 @@ export function WardrobePage() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {current && (
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: 16 }}
+          onClick={() => setCardIndex(null)}
+        >
+          <div className="card" style={{ width: '100%', maxWidth: 340, margin: 0 }} onClick={(e) => e.stopPropagation()}>
+            <div className="row" style={{ marginBottom: 8 }}>
+              <strong>Карточка вещи</strong>
+              <button className="action-btn" style={{ minWidth: 0, padding: '4px 10px' }} onClick={() => setCardIndex(null)}>✕</button>
+            </div>
+            <div style={{ fontSize: 44, textAlign: 'center', padding: '12px 0' }}>
+              {CATEGORY_ICON[current.category] ?? '🧺'}
+            </div>
+            <div style={{ textAlign: 'center', fontWeight: 700, fontSize: 16 }}>{current.name}</div>
+            <div className="muted" style={{ textAlign: 'center', marginBottom: 12 }}>
+              {current.category}
+              {current.color ? ` · ${current.color}` : ''}
+            </div>
+            <div className="row">
+              <button className="action-btn" onClick={() => setCardIndex((cardIndex! - 1 + items.length) % items.length)}>Назад</button>
+              <span className="muted">Style Twin</span>
+              <button className="action-btn" onClick={() => setCardIndex((cardIndex! + 1) % items.length)}>Далее</button>
+            </div>
+          </div>
         </div>
       )}
     </div>
