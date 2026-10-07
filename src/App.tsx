@@ -3,6 +3,7 @@ import { supabase } from './lib/supabase'
 import { AuthPage } from './components/pages/AuthPage'
 import { WardrobePage } from './components/WardrobePage'
 import { LooksPage } from './components/LooksPage'
+import { TodayPage } from './components/TodayPage'
 
 type Tab = 'today' | 'wardrobe' | 'tryon' | 'looks' | 'profile'
 
@@ -57,7 +58,7 @@ function App() {
               <button className="action-btn" onClick={() => setTab('wardrobe')}>＋ Гардероб</button>
               <button className="action-btn" onClick={() => setTab('looks')}>❐ Мои образы</button>
             </div>
-            <div className="card muted">Сегодня AI подберёт образ из вашего шкафа. Скоро!</div>
+            <TodayPage />
           </>
         )}
 
