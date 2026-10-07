@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { supabase } from '../lib/supabase'
+import { removeBackground } from '@imgly/background-removal'
 
 type WardrobeItem = {
   id: string
@@ -28,6 +29,7 @@ export function WardrobePage() {
   const [category, setCategory] = useState('tops')
   const [color, setColor] = useState('')
   const [photo, setPhoto] = useState<File | null>(null)
+  const [aiCut, setAiCut] = useState(true)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
   const [cardIndex, setCardIndex] = useState<number | null>(null)
@@ -50,6 +52,18 @@ export function WardrobePage() {
     loadItems()
   }, [])
 
+  const cutBackground = async (file: File): Promise<File> => {
+    const blob = await removeBackground(file, {
+      progress: (_key, current, total) => {
+        if (total > 0) {
+          setMessage(`✂ AI убирает фон: ${Math.round((current / total) * 100)}%`)
+        }
+      },
+    })
+    const base = file.name.replace(/\.[^/.]+$/, '') || 'photo'
+    return new File([blob], `${base}-cut.png`, { type: 'image/png' })
+  }
+
   const handleAdd = async (e: FormEvent) => {
     e.preventDefault()
     setSaving(true)
@@ -60,10 +74,9 @@ export function WardrobePage() {
 
       let imageUrl: string | null = null
       if (photo) {
-        const path = `${userData.user.id}/${Date.now()}-${photo.name}`
-        const { error: uploadError } = await supabase.storage
-          .from('wardrobe-photos')
-          .upload(path, photo)
+        const finalFile = aiCut ? await cutBackground(photo) : photo
+        const path = `${userData.user.id}/${Date.now()}-${finalFile.name}`
+        const { error: uploadError } = await supabase.storage.from('wardrobe-photos').upload(path, finalFile)
         if (uploadError) throw uploadError
         imageUrl = supabase.storage.from('wardrobe-photos').getPublicUrl(path).data.publicUrl
       }
@@ -80,6 +93,46 @@ export function WardrobePage() {
       setColor('')
       setPhoto(null)
       setShowForm(false)
+      setMessage(aiCut && photo ? '✂ Фон удалён, вещь в шкафу!' : '')
+      loadItems()
+    } catch (err: any) {
+      setMessage(`❌ Ошибка: ${err.message}`)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleProcessAll = async () => {
+    setSaving(true)
+    setMessage('✂ Ищем фото для обработки...')
+    try {
+      const { data: userData, error: userError } = await supabase.auth.getUser()
+      if (userError || !userData.user) throw userError
+      const withPhoto = items.filter((i) => i.image_url)
+      if (withPhoto.length === 0) {
+        setMessage('Пока нет фото для обработки.')
+        return
+      }
+      let done = 0
+      for (const item of withPhoto) {
+        setMessage(`✂ Обрабатываем вещь ${done + 1} из ${withPhoto.length}...`)
+        const res = await fetch(item.image_url!)
+        const blob = await res.blob()
+        const file = new File([blob], `${item.name}.png`, { type: blob.type || 'image/png' })
+        const cutted = await cutBackground(file)
+        const path = `${userData.user.id}/${Date.now()}-${done}-cut.png`
+        const { error: upErr } = await supabase.storage.from('wardrobe-photos').upload(path, cutted)
+        if (upErr) throw upErr
+        const newUrl = supabase.storage.from('wardrobe-photos').getPublicUrl(path).data.publicUrl
+        const { error: updErr } = await supabase.from('wardrobe_items').update({ image_url: newUrl }).eq('id', item.id)
+        if (updErr) throw updErr
+        const oldPath = item.image_url!.split('/wardrobe-photos/')[1]
+        if (oldPath) {
+          await supabase.storage.from('wardrobe-photos').remove([oldPath])
+        }
+        done += 1
+      }
+      setMessage(`✂ Готово! Обработано вещей: ${done}. Фон удалён, вид единый.`)
       loadItems()
     } catch (err: any) {
       setMessage(`❌ Ошибка: ${err.message}`)
@@ -130,7 +183,7 @@ export function WardrobePage() {
       <div className="muted" style={{ marginBottom: 12 }}>AI уберёт фон и приведёт к единому виду</div>
 
       <div className="actions">
-        <button className="action-btn" onClick={() => setMessage('✂ Обработка фото появится вместе с камерой. Скоро!')}>
+        <button className="action-btn" onClick={handleProcessAll} disabled={saving}>
           ✂ Обработать всё
         </button>
         <button className="action-btn" onClick={() => setShowForm(!showForm)}>
@@ -168,6 +221,10 @@ export function WardrobePage() {
             onChange={(e) => setPhoto(e.target.files?.[0] ?? null)}
             style={{ fontSize: 13 }}
           />
+          <label style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 13 }}>
+            <input type="checkbox" checked={aiCut} onChange={(e) => setAiCut(e.target.checked)} />
+            ✂ Убрать фон с фото (AI)
+          </label>
           <button type="submit" disabled={saving} className="action-btn primary" style={{ width: '100%' }}>
             {saving ? 'Сохраняем...' : 'Положить в шкаф'}
           </button>
