@@ -4,6 +4,7 @@ import { AuthPage } from './components/pages/AuthPage'
 import { WardrobePage } from './components/WardrobePage'
 import { LooksPage } from './components/LooksPage'
 import { TodayPage } from './components/TodayPage'
+import { TryOnPage } from './components/TryOnPage'
 
 type Tab = 'today' | 'wardrobe' | 'tryon' | 'looks' | 'profile'
 
@@ -64,21 +65,7 @@ function App() {
 
         {tab === 'wardrobe' && <WardrobePage />}
 
-        {tab === 'tryon' && (
-          <>
-            <h1 className="screen-title">Примерка</h1>
-            <div className="muted" style={{ marginBottom: 12 }}>Одежда по фигуре · 360° · слои с иконками.</div>
-            <div className="card row">
-              <span>спереди</span>
-              <span className="muted">сзади</span>
-            </div>
-            <div className="card row">
-              <span>✳ Образ готов</span>
-              <span className="muted">0 / 5 слоёв</span>
-            </div>
-            <button className="action-btn primary" style={{ width: '100%' }}>✳ Примерить</button>
-          </>
-        )}
+        {tab === 'tryon' && <TryOnPage />}
 
         {tab === 'looks' && <LooksPage />}
 
