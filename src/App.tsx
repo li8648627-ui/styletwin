@@ -6,16 +6,9 @@ import { LooksPage } from './components/LooksPage'
 import { TodayPage } from './components/TodayPage'
 import { TryOnPage } from './components/TryOnPage'
 import { CpwCard } from './components/CpwCard'
+import { useLang } from './i18n'
 
 type Tab = 'today' | 'wardrobe' | 'tryon' | 'looks' | 'profile'
-
-const TABS: { id: Tab; icon: string; label: string }[] = [
-  { id: 'today', icon: '🌤', label: 'Сегодня' },
-  { id: 'wardrobe', icon: '🗄', label: 'Шкаф' },
-  { id: 'tryon', icon: '👗', label: 'Примерка' },
-  { id: 'looks', icon: '✨', label: 'Образы' },
-  { id: 'profile', icon: '👤', label: 'Профиль' },
-]
 
 function App() {
   const [session, setSession] = useState<any>(null)
@@ -23,6 +16,7 @@ function App() {
   const [tab, setTab] = useState<Tab>('today')
   const [showPro, setShowPro] = useState(false)
   const [proMsg, setProMsg] = useState('')
+  const { lang, setLang, t } = useLang()
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -33,7 +27,15 @@ function App() {
     return () => subscription.unsubscribe()
   }, [])
 
-  if (loading) return <div className="screen muted" style={{ padding: 24, textAlign: 'center' }}>Загрузка...</div>
+  const TABS: { id: Tab; icon: string; label: string }[] = [
+    { id: 'today', icon: '🌤', label: t('tab_today') },
+    { id: 'wardrobe', icon: '🗄', label: t('tab_wardrobe') },
+    { id: 'tryon', icon: '👗', label: t('tab_tryon') },
+    { id: 'looks', icon: '✨', label: t('tab_looks') },
+    { id: 'profile', icon: '👤', label: t('tab_profile') },
+  ]
+
+  if (loading) return <div className="screen muted" style={{ padding: 24, textAlign: 'center' }}>{t('loading')}</div>
   if (!session) return <AuthPage />
 
   const email: string = session.user?.email ?? ''
@@ -43,22 +45,26 @@ function App() {
       <div className="statusbar"><span>9:41</span><span>📶</span></div>
       <div className="appbar">
         <div className="brand">StyleTwin<sup>®</sup></div>
-        <span className="badge-free">FREE</span>
+        <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+          <span className="badge-free">FREE</span>
+          <button className="badge-free" style={{ cursor: 'pointer', borderColor: lang === 'ru' ? '#111' : undefined, fontWeight: lang === 'ru' ? 700 : 400 }} onClick={() => setLang('ru')}>RU</button>
+          <button className="badge-free" style={{ cursor: 'pointer', borderColor: lang === 'en' ? '#111' : undefined, fontWeight: lang === 'en' ? 700 : 400 }} onClick={() => setLang('en')}>EN</button>
+        </div>
       </div>
 
       <main className="screen">
         {tab === 'today' && (
           <>
-            <div className="weather">✳ 18° · дождь</div>
+            <div className="weather">{t('weather')}</div>
             <div className="chips">
-              <span className="chip">офис</span>
-              <span className="chip">встреча 14:00</span>
+              <span className="chip">{t('chip_office')}</span>
+              <span className="chip">{t('chip_meeting')}</span>
             </div>
-            <h1 className="screen-title">Что надеть сегодня</h1>
+            <h1 className="screen-title">{t('today_title')}</h1>
             <div className="actions">
-              <button className="action-btn primary" onClick={() => setTab('tryon')}>✳ AI-примерка</button>
-              <button className="action-btn" onClick={() => setTab('wardrobe')}>＋ Гардероб</button>
-              <button className="action-btn" onClick={() => setTab('looks')}>❐ Мои образы</button>
+              <button className="action-btn primary" onClick={() => setTab('tryon')}>{t('btn_tryon')}</button>
+              <button className="action-btn" onClick={() => setTab('wardrobe')}>{t('btn_wardrobe')}</button>
+              <button className="action-btn" onClick={() => setTab('looks')}>{t('btn_looks')}</button>
             </div>
             <TodayPage />
           </>
@@ -72,7 +78,7 @@ function App() {
 
         {tab === 'profile' && (
           <>
-            <h1 className="screen-title">Профиль</h1>
+            <h1 className="screen-title">{t('profile_title')}</h1>
             <div className="card row">
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#111', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>
@@ -85,25 +91,25 @@ function App() {
               </div>
             </div>
             <div className="card row" onClick={() => setTab('wardrobe')} style={{ cursor: 'pointer' }}>
-              <span>Гардероб</span><span className="muted">→</span>
+              <span>{t('row_wardrobe')}</span><span className="muted">→</span>
             </div>
             <div className="card row" onClick={() => setShowPro(true)} style={{ cursor: 'pointer' }}>
-              <span>Подписка</span><span className="muted">FREE →</span>
+              <span>{t('row_sub')}</span><span className="muted">FREE →</span>
             </div>
             <CpwCard />
             <div className="card row">
-              <span>Настройки</span><span className="muted">→</span>
+              <span>{t('row_settings')}</span><span className="muted">→</span>
             </div>
-            <button className="action-btn" style={{ width: '100%' }} onClick={() => supabase.auth.signOut()}>Выйти</button>
+            <button className="action-btn" style={{ width: '100%' }} onClick={() => supabase.auth.signOut()}>{t('btn_logout')}</button>
           </>
         )}
       </main>
 
       <nav className="tabbar">
-        {TABS.map((t) => (
-          <button key={t.id} className={`tab ${tab === t.id ? 'active' : ''}`} onClick={() => setTab(t.id)}>
-            <span className="tab-icon">{t.icon}</span>
-            <span>{t.label}</span>
+        {TABS.map((tb) => (
+          <button key={tb.id} className={`tab ${tab === tb.id ? 'active' : ''}`} onClick={() => setTab(tb.id)}>
+            <span className="tab-icon">{tb.icon}</span>
+            <span>{tb.label}</span>
           </button>
         ))}
       </nav>
@@ -117,32 +123,32 @@ function App() {
             <div style={{ textAlign: 'center', fontWeight: 800, fontSize: 18 }}>
               Style Twin <span style={{ color: 'var(--accent)' }}>PRO</span>
             </div>
-            <div className="muted" style={{ textAlign: 'center', marginBottom: 12 }}>Стилист без лимитов</div>
+            <div className="muted" style={{ textAlign: 'center', marginBottom: 12 }}>{t('pro_sub')}</div>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, marginBottom: 12 }}>
               <tbody>
-                <tr><td style={{ padding: '6px 0' }}>Примерки в месяц</td><td style={{ textAlign: 'center' }}>3</td><td style={{ textAlign: 'center', fontWeight: 700 }}>∞</td></tr>
-                <tr><td style={{ padding: '6px 0' }}>Вещей в гардеробе</td><td style={{ textAlign: 'center' }}>100</td><td style={{ textAlign: 'center', fontWeight: 700 }}>∞</td></tr>
-                <tr><td style={{ padding: '6px 0' }}>Обучаемый AI</td><td style={{ textAlign: 'center' }}>—</td><td style={{ textAlign: 'center', fontWeight: 700 }}>✓</td></tr>
-                <tr><td style={{ padding: '6px 0' }}>Аналитика CPW</td><td style={{ textAlign: 'center' }}>—</td><td style={{ textAlign: 'center', fontWeight: 700 }}>✓</td></tr>
+                <tr><td style={{ padding: '6px 0' }}>{t('pro_row1')}</td><td style={{ textAlign: 'center' }}>3</td><td style={{ textAlign: 'center', fontWeight: 700 }}>∞</td></tr>
+                <tr><td style={{ padding: '6px 0' }}>{t('pro_row2')}</td><td style={{ textAlign: 'center' }}>100</td><td style={{ textAlign: 'center', fontWeight: 700 }}>∞</td></tr>
+                <tr><td style={{ padding: '6px 0' }}>{t('pro_row3')}</td><td style={{ textAlign: 'center' }}>—</td><td style={{ textAlign: 'center', fontWeight: 700 }}>✓</td></tr>
+                <tr><td style={{ padding: '6px 0' }}>{t('pro_row4')}</td><td style={{ textAlign: 'center' }}>—</td><td style={{ textAlign: 'center', fontWeight: 700 }}>✓</td></tr>
               </tbody>
             </table>
             <div className="row" style={{ marginBottom: 8 }}>
               <span className="muted" style={{ textDecoration: 'line-through' }}>$4.99 /мес</span>
-              <span style={{ fontWeight: 700, color: 'var(--accent)' }}>−50% · ВЫГОДНЕЕ $2.49 /мес</span>
+              <span style={{ fontWeight: 700, color: 'var(--accent)' }}>{t('pro_deal')}</span>
             </div>
             <button
               className="action-btn primary"
               style={{ width: '100%' }}
-              onClick={() => setProMsg('Платежи подключим на следующей итерации. Пока PRO — это красиво!')}
+              onClick={() => setProMsg(t('pro_msg'))}
             >
-              ✳ Оформить за $2.49/мес
+              {t('pro_btn')}
             </button>
             {proMsg && <div className="muted" style={{ textAlign: 'center', marginTop: 8 }}>{proMsg}</div>}
             <div style={{ textAlign: 'center', marginTop: 8 }}>
-              <button style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer' }} onClick={() => setShowPro(false)}>Позже</button>
+              <button style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer' }} onClick={() => setShowPro(false)}>{t('pro_later')}</button>
             </div>
-            <div className="muted" style={{ textAlign: 'center', fontSize: 11 }}>Отмена в любой момент · Возврат 7 дней</div>
-            <div className="muted" style={{ textAlign: 'center', fontSize: 11, marginTop: 4 }}>✳ 4.9 · 12 000+ образов собрано</div>
+            <div className="muted" style={{ textAlign: 'center', fontSize: 11 }}>{t('pro_note')}</div>
+            <div className="muted" style={{ textAlign: 'center', fontSize: 11, marginTop: 4 }}>{t('pro_social')}</div>
           </div>
         </div>
       )}
