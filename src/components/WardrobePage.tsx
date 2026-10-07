@@ -31,6 +31,7 @@ export function WardrobePage() {
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
   const [cardIndex, setCardIndex] = useState<number | null>(null)
+  const [confirmDelete, setConfirmDelete] = useState(false)
 
   const loadItems = () => {
     supabase
@@ -79,6 +80,33 @@ export function WardrobePage() {
       setColor('')
       setPhoto(null)
       setShowForm(false)
+      loadItems()
+    } catch (err: any) {
+      setMessage(`❌ Ошибка: ${err.message}`)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!current) return
+    if (!confirmDelete) {
+      setConfirmDelete(true)
+      return
+    }
+    setSaving(true)
+    setMessage('')
+    try {
+      if (current.image_url) {
+        const path = current.image_url.split('/wardrobe-photos/')[1]
+        if (path) {
+          await supabase.storage.from('wardrobe-photos').remove([path])
+        }
+      }
+      const { error } = await supabase.from('wardrobe_items').delete().eq('id', current.id)
+      if (error) throw error
+      setCardIndex(null)
+      setConfirmDelete(false)
       loadItems()
     } catch (err: any) {
       setMessage(`❌ Ошибка: ${err.message}`)
@@ -156,7 +184,10 @@ export function WardrobePage() {
             <div
               key={item.id}
               className="card"
-              onClick={() => setCardIndex(i)}
+              onClick={() => {
+                setCardIndex(i)
+                setConfirmDelete(false)
+              }}
               style={{ marginBottom: 0, padding: 10, display: 'flex', flexDirection: 'column', gap: 4, minHeight: 96, cursor: 'pointer' }}
             >
               {item.image_url ? (
@@ -177,12 +208,24 @@ export function WardrobePage() {
       {current && (
         <div
           style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: 16 }}
-          onClick={() => setCardIndex(null)}
+          onClick={() => {
+            setCardIndex(null)
+            setConfirmDelete(false)
+          }}
         >
           <div className="card" style={{ width: '100%', maxWidth: 340, margin: 0 }} onClick={(e) => e.stopPropagation()}>
             <div className="row" style={{ marginBottom: 8 }}>
               <strong>Карточка вещи</strong>
-              <button className="action-btn" style={{ minWidth: 0, padding: '4px 10px' }} onClick={() => setCardIndex(null)}>✕</button>
+              <button
+                className="action-btn"
+                style={{ minWidth: 0, padding: '4px 10px' }}
+                onClick={() => {
+                  setCardIndex(null)
+                  setConfirmDelete(false)
+                }}
+              >
+                ✕
+              </button>
             </div>
             {current.image_url ? (
               <img src={current.image_url} alt={current.name} style={{ width: '100%', maxHeight: 220, objectFit: 'cover', borderRadius: 12, marginBottom: 8 }} />
@@ -201,6 +244,18 @@ export function WardrobePage() {
               <span className="muted">Style Twin</span>
               <button className="action-btn" onClick={() => setCardIndex((cardIndex! + 1) % items.length)}>Далее</button>
             </div>
+            <button
+              className="action-btn"
+              style={{
+                width: '100%',
+                marginTop: 8,
+                background: confirmDelete ? '#c0392b' : '#ffe5e5',
+                color: confirmDelete ? '#fff' : '#c0392b',
+              }}
+              onClick={handleDelete}
+            >
+              {confirmDelete ? 'Точно удалить?' : '🗑 Удалить вещь'}
+            </button>
           </div>
         </div>
       )}
