@@ -6,6 +6,7 @@ type WardrobeItem = {
   name: string
   category: string
   color: string | null
+  image_url: string | null
 }
 
 const CATEGORIES = ['tops', 'bottoms', 'dresses', 'shoes', 'accessories']
@@ -26,6 +27,7 @@ export function WardrobePage() {
   const [name, setName] = useState('')
   const [category, setCategory] = useState('tops')
   const [color, setColor] = useState('')
+  const [photo, setPhoto] = useState<File | null>(null)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
   const [cardIndex, setCardIndex] = useState<number | null>(null)
@@ -33,7 +35,7 @@ export function WardrobePage() {
   const loadItems = () => {
     supabase
       .from('wardrobe_items')
-      .select('id, name, category, color')
+      .select('id, name, category, color, image_url')
       .order('created_at', { ascending: true })
       .then(({ data, error }) => {
         if (!error && data) {
@@ -54,15 +56,28 @@ export function WardrobePage() {
     try {
       const { data: userData, error: userError } = await supabase.auth.getUser()
       if (userError || !userData.user) throw userError
+
+      let imageUrl: string | null = null
+      if (photo) {
+        const path = `${userData.user.id}/${Date.now()}-${photo.name}`
+        const { error: uploadError } = await supabase.storage
+          .from('wardrobe-photos')
+          .upload(path, photo)
+        if (uploadError) throw uploadError
+        imageUrl = supabase.storage.from('wardrobe-photos').getPublicUrl(path).data.publicUrl
+      }
+
       const { error } = await supabase.from('wardrobe_items').insert({
         user_id: userData.user.id,
         name,
         category,
         color: color || null,
+        image_url: imageUrl,
       })
       if (error) throw error
       setName('')
       setColor('')
+      setPhoto(null)
       setShowForm(false)
       loadItems()
     } catch (err: any) {
@@ -100,7 +115,7 @@ export function WardrobePage() {
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Название (например, Юбка миди)"
+            placeholder="Название (например, Красные кеды)"
             required
             style={{ padding: 10, border: '1px solid #ddd', borderRadius: 6 }}
           />
@@ -116,8 +131,14 @@ export function WardrobePage() {
           <input
             value={color}
             onChange={(e) => setColor(e.target.value)}
-            placeholder="Цвет (например, black)"
+            placeholder="Цвет (например, red)"
             style={{ padding: 10, border: '1px solid #ddd', borderRadius: 6 }}
+          />
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => setPhoto(e.target.files?.[0] ?? null)}
+            style={{ fontSize: 13 }}
           />
           <button type="submit" disabled={saving} className="action-btn primary" style={{ width: '100%' }}>
             {saving ? 'Сохраняем...' : 'Положить в шкаф'}
@@ -138,7 +159,11 @@ export function WardrobePage() {
               onClick={() => setCardIndex(i)}
               style={{ marginBottom: 0, padding: 10, display: 'flex', flexDirection: 'column', gap: 4, minHeight: 96, cursor: 'pointer' }}
             >
-              <div style={{ fontSize: 22 }}>{CATEGORY_ICON[item.category] ?? '🧺'}</div>
+              {item.image_url ? (
+                <img src={item.image_url} alt={item.name} style={{ width: '100%', height: 64, objectFit: 'cover', borderRadius: 6 }} />
+              ) : (
+                <div style={{ fontSize: 22 }}>{CATEGORY_ICON[item.category] ?? '🧺'}</div>
+              )}
               <div style={{ fontSize: 12, fontWeight: 600 }}>{item.name}</div>
               <div className="muted" style={{ fontSize: 10 }}>
                 {item.category}
@@ -159,9 +184,13 @@ export function WardrobePage() {
               <strong>Карточка вещи</strong>
               <button className="action-btn" style={{ minWidth: 0, padding: '4px 10px' }} onClick={() => setCardIndex(null)}>✕</button>
             </div>
-            <div style={{ fontSize: 44, textAlign: 'center', padding: '12px 0' }}>
-              {CATEGORY_ICON[current.category] ?? '🧺'}
-            </div>
+            {current.image_url ? (
+              <img src={current.image_url} alt={current.name} style={{ width: '100%', maxHeight: 220, objectFit: 'cover', borderRadius: 12, marginBottom: 8 }} />
+            ) : (
+              <div style={{ fontSize: 44, textAlign: 'center', padding: '12px 0' }}>
+                {CATEGORY_ICON[current.category] ?? '🧺'}
+              </div>
+            )}
             <div style={{ textAlign: 'center', fontWeight: 700, fontSize: 16 }}>{current.name}</div>
             <div className="muted" style={{ textAlign: 'center', marginBottom: 12 }}>
               {current.category}
