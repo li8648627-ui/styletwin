@@ -5,6 +5,7 @@ import { WardrobePage } from './components/WardrobePage'
 import { LooksPage } from './components/LooksPage'
 import { TodayPage } from './components/TodayPage'
 import { TryOnPage } from './components/TryOnPage'
+import { CpwCard } from './components/CpwCard'
 
 type Tab = 'today' | 'wardrobe' | 'tryon' | 'looks' | 'profile'
 
@@ -89,6 +90,7 @@ function App() {
             <div className="card row" onClick={() => setShowPro(true)} style={{ cursor: 'pointer' }}>
               <span>Подписка</span><span className="muted">FREE →</span>
             </div>
+            <CpwCard />
             <div className="card row">
               <span>Настройки</span><span className="muted">→</span>
             </div>
