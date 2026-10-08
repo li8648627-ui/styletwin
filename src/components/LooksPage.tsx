@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { supabase } from '../lib/supabase'
+import { useLang } from '../i18n'
 
 type LookItem = { id: string; name: string; category: string }
 type Look = { id: string; name: string; item_ids: string[] }
@@ -14,6 +15,7 @@ const CATEGORY_ICON: Record<string, string> = {
 }
 
 export function LooksPage() {
+  const { t } = useLang()
   const [looks, setLooks] = useState<Look[]>([])
   const [items, setItems] = useState<LookItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -60,22 +62,22 @@ export function LooksPage() {
       setShowForm(false)
       load()
     } catch (err: any) {
-      setMessage(`❌ Ошибка: ${err.message}`)
+      setMessage(`❌ ${err.message}`)
     } finally {
       setSaving(false)
     }
   }
 
-  if (loading) return <div className="muted" style={{ padding: 16 }}>Открываем образы...</div>
+  if (loading) return <div className="muted" style={{ padding: 16 }}>{t('looks_loading')}</div>
 
   const itemById = (id: string) => items.find((i) => i.id === id)
 
   return (
     <div>
       <div className="row" style={{ marginBottom: 12 }}>
-        <h1 className="screen-title" style={{ margin: 0 }}>Мои образы</h1>
+        <h1 className="screen-title" style={{ margin: 0 }}>{t('looks_title')}</h1>
         <button className="action-btn" onClick={() => setShowForm(!showForm)}>
-          {showForm ? 'Скрыть' : '+ Собрать образ'}
+          {showForm ? t('looks_hide') : t('looks_add')}
         </button>
       </div>
 
@@ -84,25 +86,21 @@ export function LooksPage() {
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Название образа (например, Офис в понедельник)"
+            placeholder={t('looks_name_ph')}
             required
             style={{ padding: 10, border: '1px solid #ddd', borderRadius: 6 }}
           />
-          <div className="muted">Отметьте вещи из шкафа:</div>
+          <div className="muted">{t('looks_pick')}</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 200, overflowY: 'auto' }}>
             {items.map((item) => (
               <label key={item.id} style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 14 }}>
-                <input
-                  type="checkbox"
-                  checked={selected.includes(item.id)}
-                  onChange={() => toggleItem(item.id)}
-                />
+                <input type="checkbox" checked={selected.includes(item.id)} onChange={() => toggleItem(item.id)} />
                 <span>{CATEGORY_ICON[item.category] ?? '🧺'} {item.name}</span>
               </label>
             ))}
           </div>
           <button type="submit" disabled={saving || selected.length === 0} className="action-btn primary" style={{ width: '100%' }}>
-            {saving ? 'Сохраняем...' : 'Сохранить образ'}
+            {saving ? t('looks_saving') : t('looks_save')}
           </button>
         </form>
       )}
@@ -110,7 +108,7 @@ export function LooksPage() {
       {message && <div className="card muted">{message}</div>}
 
       {looks.length === 0 ? (
-        <div className="card muted">Образов пока нет. Нажмите «+ Собрать образ» — и шкаф превратится в комплекты.</div>
+        <div className="card muted">{t('looks_empty')}</div>
       ) : (
         looks.map((look) => (
           <div key={look.id} className="card">

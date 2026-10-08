@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { useLang } from '../i18n'
 
 type Item = { id: string; name: string; price: number | null; wears: number }
 
 export function CpwCard() {
+  const { lang, t } = useLang()
   const [items, setItems] = useState<Item[]>([])
 
   useEffect(() => {
@@ -22,25 +24,21 @@ export function CpwCard() {
 
   return (
     <div className="card">
-      <div style={{ fontWeight: 700, marginBottom: 6 }}>📊 Аналитика CPW</div>
+      <div style={{ fontWeight: 700, marginBottom: 6 }}>{t('cpw_title')}</div>
       {rows.length === 0 ? (
-        <div className="muted">
-          Укажите цену вещи через «✏️ Редактировать» и нажимайте «👗 +1 выход», когда надеваете её, — здесь появится стоимость одного выхода.
-        </div>
+        <div className="muted">{t('cpw_hint')}</div>
       ) : (
         <>
           <div className="muted" style={{ marginBottom: 6 }}>
-            Потрачено: {totalSpent.toLocaleString('ru-RU')} · Выходов: {totalWears}
+            {t('cpw_spent')} {totalSpent.toLocaleString(lang === 'ru' ? 'ru-RU' : 'en-US')} · {t('cpw_wears')} {totalWears}
           </div>
           {rows.slice(0, 3).map((r) => (
             <div className="row" key={r.id} style={{ padding: '4px 0' }}>
               <span style={{ fontSize: 13 }}>{r.name}</span>
-              <span style={{ fontSize: 13, fontWeight: 700 }}>{Math.round(r.cpw)} / выход</span>
+              <span style={{ fontSize: 13, fontWeight: 700 }}>{Math.round(r.cpw)} {t('cpw_per')}</span>
             </div>
           ))}
-          <div className="muted" style={{ marginTop: 6, fontSize: 11 }}>
-            Чем меньше стоимость выхода, тем выгоднее вещь. В PRO — полная аналитика.
-          </div>
+          <div className="muted" style={{ marginTop: 6, fontSize: 11 }}>{t('cpw_note')}</div>
         </>
       )}
     </div>

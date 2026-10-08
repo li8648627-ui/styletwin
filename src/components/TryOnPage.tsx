@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { useLang } from '../i18n'
 
 type Item = { id: string; name: string; category: string; image_url: string | null }
 
@@ -15,6 +16,7 @@ const CATEGORY_ICON: Record<string, string> = {
 const MAX_LAYERS = 5
 
 export function TryOnPage() {
+  const { t } = useLang()
   const [items, setItems] = useState<Item[]>([])
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState<string[]>([])
@@ -51,22 +53,22 @@ export function TryOnPage() {
       if (userError || !userData.user) throw userError
       const { error } = await supabase.from('looks').insert({
         user_id: userData.user.id,
-        name: `Примерка: ${layerItems.map((i) => i.name).join(' + ')}`,
+        name: `${t('look_name_tryon')}${layerItems.map((i) => i.name).join(' + ')}`,
         item_ids: selected,
       })
       if (error) throw error
-      setMessage('✅ Образ из примерочной сохранён в «Мои образы»!')
+      setMessage(t('tryon_saved'))
     } catch (err: any) {
-      setMessage(`❌ Ошибка: ${err.message}`)
+      setMessage(`❌ ${err.message}`)
     }
   }
 
-  if (loading) return <div className="muted" style={{ padding: 16 }}>Готовим примерочную...</div>
+  if (loading) return <div className="muted" style={{ padding: 16 }}>{t('tryon_loading')}</div>
 
   return (
     <div>
-      <h1 className="screen-title">Примерка</h1>
-      <div className="muted" style={{ marginBottom: 12 }}>Одежда по фигуре · 360° · слои с иконками.</div>
+      <h1 className="screen-title">{t('tryon_title')}</h1>
+      <div className="muted" style={{ marginBottom: 12 }}>{t('tryon_sub')}</div>
 
       <div className="card">
         <div className="row" style={{ marginBottom: 8 }}>
@@ -75,14 +77,14 @@ export function TryOnPage() {
             style={{ background: view === 'front' ? '#111' : '#fff', color: view === 'front' ? '#fff' : '#111' }}
             onClick={() => setView('front')}
           >
-            спереди
+            {t('tryon_front')}
           </button>
           <button
             className="action-btn"
             style={{ background: view === 'back' ? '#111' : '#fff', color: view === 'back' ? '#fff' : '#111' }}
             onClick={() => setView('back')}
           >
-            сзади
+            {t('tryon_back')}
           </button>
         </div>
         <div style={{ position: 'relative', minHeight: 220, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -99,13 +101,13 @@ export function TryOnPage() {
           </div>
         </div>
         <div className="row" style={{ marginTop: 8 }}>
-          <span>{tried ? '✳ Образ готов' : '✳ Примерочная'}</span>
-          <span className="muted">{selected.length} / {MAX_LAYERS} слоёв</span>
+          <span>{tried ? t('tryon_ready') : t('tryon_room')}</span>
+          <span className="muted">{selected.length} / {MAX_LAYERS} {t('tryon_layers')}</span>
         </div>
-        {tried && <div className="muted" style={{ textAlign: 'center', marginTop: 4 }}>смотри спереди и сзади</div>}
+        {tried && <div className="muted" style={{ textAlign: 'center', marginTop: 4 }}>{t('tryon_see')}</div>}
       </div>
 
-      <div className="muted" style={{ margin: '8px 0' }}>Отметьте слои (до 5):</div>
+      <div className="muted" style={{ margin: '8px 0' }}>{t('tryon_pick')}</div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
         {items.map((item) => (
           <label key={item.id} className="card row" style={{ marginBottom: 0, padding: 10, cursor: 'pointer' }}>
@@ -118,11 +120,11 @@ export function TryOnPage() {
       </div>
 
       <button className="action-btn primary" style={{ width: '100%' }} disabled={selected.length === 0} onClick={() => setTried(true)}>
-        ✳ Примерить
+        {t('tryon_btn')}
       </button>
       {tried && (
         <button className="action-btn" style={{ width: '100%', marginTop: 8 }} onClick={saveLook}>
-          Сохранить в образы
+          {t('tryon_save')}
         </button>
       )}
       {message && <div className="card muted" style={{ marginTop: 8 }}>{message}</div>}

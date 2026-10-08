@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { useLang } from '../i18n'
 
 type Item = { id: string; name: string; category: string; color: string | null; image_url: string | null }
 
@@ -12,8 +13,7 @@ const CATEGORY_ICON: Record<string, string> = {
   other: '🧺',
 }
 
-const WEATHER = { temp: 18, cond: 'дождь' }
-const EVENTS = ['офис', 'встреча 14:00']
+const WEATHER = { temp: 18, cond: 'rain' }
 
 function pickOutfit(items: Item[], seed: number): Item[] {
   if (items.length === 0) return []
@@ -27,28 +27,22 @@ function pickOutfit(items: Item[], seed: number): Item[] {
   const pick = <T,>(arr: T[], offset: number): T | undefined =>
     arr.length ? arr[(seed + offset) % arr.length] : undefined
 
-  const isOffice = EVENTS.includes('офис')
   const result: Item[] = []
 
-  if (isOffice && tops.length && bottoms.length) {
-    const t = pick(tops, 0)
+  if (tops.length && bottoms.length) {
+    const t1 = pick(tops, 0)
     const b = pick(bottoms, 1)
-    if (t) result.push(t)
+    if (t1) result.push(t1)
     if (b) result.push(b)
   } else if (dresses.length) {
     const d = pick(dresses, 0)
     if (d) result.push(d)
-  } else if (tops.length && bottoms.length) {
-    const t = pick(tops, 0)
-    const b = pick(bottoms, 1)
-    if (t) result.push(t)
-    if (b) result.push(b)
   } else {
     const any = pick(items, 0)
     if (any) result.push(any)
   }
 
-  if (WEATHER.cond === 'дождь') {
+  if (WEATHER.cond === 'rain') {
     const s = pick(shoes, 2)
     if (s && !result.includes(s)) result.push(s)
   }
@@ -58,15 +52,8 @@ function pickOutfit(items: Item[], seed: number): Item[] {
   return result.slice(0, 5)
 }
 
-function reasonFor(): string {
-  const parts: string[] = []
-  if (EVENTS.includes('офис')) parts.push('офисный дресс-код')
-  if (WEATHER.cond === 'дождь') parts.push('дождь — закрытая обувь')
-  if (WEATHER.temp <= 18) parts.push('прохладно — возьмите слой сверху')
-  return parts.length ? `Почему: ${parts.join(', ')}.` : 'Почему: настроение и ваш шкаф!'
-}
-
 export function TodayPage() {
+  const { t } = useLang()
   const [items, setItems] = useState<Item[]>([])
   const [seed, setSeed] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -85,6 +72,14 @@ export function TodayPage() {
 
   const outfit = pickOutfit(items, seed)
 
+  const reasonFor = (): string => {
+    const parts: string[] = []
+    parts.push(t('why_office'))
+    parts.push(t('why_rain'))
+    if (WEATHER.temp <= 18) parts.push(t('why_cool'))
+    return `${t('why_prefix')} ${parts.join(', ')}.`
+  }
+
   const saveLook = async () => {
     setMessage('')
     try {
@@ -92,25 +87,24 @@ export function TodayPage() {
       if (userError || !userData.user) throw userError
       const { error } = await supabase.from('looks').insert({
         user_id: userData.user.id,
-        name: `Сегодня: ${EVENTS.join(', ')} · ${WEATHER.temp}° ${WEATHER.cond}`,
+        name: t('look_name_today'),
         item_ids: outfit.map((i) => i.id),
       })
       if (error) throw error
       setSaved(true)
-      setMessage('✅ Образ сохранён в «Мои образы»!')
+      setMessage(t('today_saved_msg'))
     } catch (err: any) {
-      setMessage(`❌ Ошибка: ${err.message}`)
+      setMessage(`❌ ${err.message}`)
     }
   }
 
-  if (loading) return <div className="card muted">Стилист смотрит в шкаф...</div>
-  if (items.length === 0)
-    return <div className="card muted">Шкаф пуст — добавьте вещи, и стилист соберёт образ.</div>
+  if (loading) return <div className="card muted">{t('today_stylist')}</div>
+  if (items.length === 0) return <div className="card muted">{t('today_empty')}</div>
 
   return (
     <div>
       <div className="card">
-        <div style={{ fontWeight: 700, marginBottom: 8 }}>✳ Образ на сегодня</div>
+        <div style={{ fontWeight: 700, marginBottom: 8 }}>{t('today_look')}</div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
           {outfit.map((it) => (
             <span key={it.id} className="chip">
@@ -131,7 +125,7 @@ export function TodayPage() {
       </div>
       <div className="actions">
         <button className="action-btn primary" onClick={saveLook} disabled={saved}>
-          {saved ? '✅ Сохранено' : 'Взять этот образ'}
+          {saved ? t('today_taken') : t('today_take')}
         </button>
         <button
           className="action-btn"
@@ -140,7 +134,7 @@ export function TodayPage() {
             setSaved(false)
           }}
         >
-          Другой вариант
+          {t('today_other')}
         </button>
       </div>
       {message && <div className="card muted">{message}</div>}
