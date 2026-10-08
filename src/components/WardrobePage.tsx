@@ -16,13 +16,15 @@ type WardrobeItem = {
 const CATEGORIES = ['tops', 'bottoms', 'dresses', 'shoes', 'accessories']
 
 const CATEGORY_ICON: Record<string, string> = {
-  tops: '👕',
+  tops: '',
   bottoms: '👖',
   dresses: '👗',
   shoes: '👟',
   accessories: '👜',
   other: '🧺',
 }
+
+const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
 
 export function WardrobePage() {
   const { t } = useLang()
@@ -34,7 +36,7 @@ export function WardrobePage() {
   const [color, setColor] = useState('')
   const [price, setPrice] = useState('')
   const [photo, setPhoto] = useState<File | null>(null)
-  const [aiCut, setAiCut] = useState(true)
+  const [aiCut, setAiCut] = useState(!isMobile)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
   const [cardIndex, setCardIndex] = useState<number | null>(null)
@@ -182,6 +184,10 @@ export function WardrobePage() {
   }
 
   const handleProcessAll = async () => {
+    if (isMobile) {
+      setMessage(' AI-обработка доступна только на компьютере. На телефоне фото загружаются без обработки.')
+      return
+    }
     setSaving(true)
     setMessage(t('w_processing') + '...')
     try {
@@ -281,8 +287,15 @@ export function WardrobePage() {
             style={{ fontSize: 13 }}
           />
           <label style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 13 }}>
-            <input type="checkbox" checked={aiCut} onChange={(e) => setAiCut(e.target.checked)} />
+            <input
+              type="checkbox"
+              checked={aiCut}
+              onChange={(e) => setAiCut(e.target.checked)}
+              disabled={isMobile}
+              style={{ opacity: isMobile ? 0.5 : 1 }}
+            />
             {t('w_ai_cut')}
+            {isMobile && <span style={{ color: '#c0392b', fontSize: 11, marginLeft: 4 }}>(только на ПК)</span>}
           </label>
           <button type="submit" disabled={saving} className="action-btn primary" style={{ width: '100%' }}>
             {saving ? t('w_saving') : t('w_save')}
