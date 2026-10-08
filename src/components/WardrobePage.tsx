@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { supabase } from '../lib/supabase'
 import { removeBackground } from '@imgly/background-removal'
+import { useLang } from '../i18n'
 
 type WardrobeItem = {
   id: string
@@ -24,6 +25,7 @@ const CATEGORY_ICON: Record<string, string> = {
 }
 
 export function WardrobePage() {
+  const { t } = useLang()
   const [items, setItems] = useState<WardrobeItem[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
@@ -64,7 +66,7 @@ export function WardrobePage() {
     const blob = await removeBackground(file, {
       progress: (_key, current, total) => {
         if (total > 0) {
-          setMessage(`✂ AI убирает фон: ${Math.round((current / total) * 100)}%`)
+          setMessage(`${t('w_cut')} ${Math.round((current / total) * 100)}%`)
         }
       },
     })
@@ -105,7 +107,7 @@ export function WardrobePage() {
       setShowForm(false)
       loadItems()
     } catch (err: any) {
-      setMessage(`❌ Ошибка: ${err.message}`)
+      setMessage(`${t('w_err')} ${err.message}`)
     } finally {
       setSaving(false)
     }
@@ -129,7 +131,7 @@ export function WardrobePage() {
       setEditing(false)
       loadItems()
     } catch (err: any) {
-      setMessage(`❌ Ошибка: ${err.message}`)
+      setMessage(`${t('w_err')} ${err.message}`)
     } finally {
       setSaving(false)
     }
@@ -146,7 +148,7 @@ export function WardrobePage() {
       if (error) throw error
       loadItems()
     } catch (err: any) {
-      setMessage(`❌ Ошибка: ${err.message}`)
+      setMessage(`${t('w_err')} ${err.message}`)
     } finally {
       setSaving(false)
     }
@@ -173,14 +175,53 @@ export function WardrobePage() {
       setConfirmDelete(false)
       loadItems()
     } catch (err: any) {
-      setMessage(`❌ Ошибка: ${err.message}`)
+      setMessage(`${t('w_err')} ${err.message}`)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleProcessAll = async () => {
+    setSaving(true)
+    setMessage(t('w_processing') + '...')
+    try {
+      const { data: userData, error: userError } = await supabase.auth.getUser()
+      if (userError || !userData.user) throw userError
+      const withPhoto = items.filter((i) => i.image_url)
+      if (withPhoto.length === 0) {
+        setMessage(t('w_no_photos'))
+        return
+      }
+      let done = 0
+      for (const item of withPhoto) {
+        setMessage(`${t('w_processing')} ${done + 1} ${t('w_of')} ${withPhoto.length}...`)
+        const res = await fetch(item.image_url!)
+        const blob = await res.blob()
+        const file = new File([blob], `${item.name}.png`, { type: blob.type || 'image/png' })
+        const cutted = await cutBackground(file)
+        const path = `${userData.user.id}/${Date.now()}-${done}-cut.png`
+        const { error: upErr } = await supabase.storage.from('wardrobe-photos').upload(path, cutted)
+        if (upErr) throw upErr
+        const newUrl = supabase.storage.from('wardrobe-photos').getPublicUrl(path).data.publicUrl
+        const { error: updErr } = await supabase.from('wardrobe_items').update({ image_url: newUrl }).eq('id', item.id)
+        if (updErr) throw updErr
+        const oldPath = item.image_url!.split('/wardrobe-photos/')[1]
+        if (oldPath) {
+          await supabase.storage.from('wardrobe-photos').remove([oldPath])
+        }
+        done += 1
+      }
+      setMessage(`${t('w_done')} ${done}. ${t('w_done2')}`)
+      loadItems()
+    } catch (err: any) {
+      setMessage(`${t('w_err')} ${err.message}`)
     } finally {
       setSaving(false)
     }
   }
 
   if (loading) {
-    return <div className="muted" style={{ padding: 16 }}>Открываем шкаф...</div>
+    return <div className="muted" style={{ padding: 16 }}>{t('w_loading')}</div>
   }
 
   const current = cardIndex !== null ? items[cardIndex] : null
@@ -188,17 +229,17 @@ export function WardrobePage() {
   return (
     <div>
       <div className="row" style={{ marginBottom: 4 }}>
-        <h1 className="screen-title" style={{ margin: 0 }}>Гардероб</h1>
-        <span className="muted">Все {items.length} →</span>
+        <h1 className="screen-title" style={{ margin: 0 }}>{t('w_title')}</h1>
+        <span className="muted">{t('w_all')} {items.length} →</span>
       </div>
-      <div className="muted" style={{ marginBottom: 12 }}>AI уберёт фон и приведёт к единому виду</div>
+      <div className="muted" style={{ marginBottom: 12 }}>{t('w_ai')}</div>
 
       <div className="actions">
-        <button className="action-btn" onClick={() => setMessage('✂ Обработка уже доступна при загрузке фото и по кнопке для новых вещей!')} disabled={saving}>
-          ✂ Обработать всё
+        <button className="action-btn" onClick={handleProcessAll} disabled={saving}>
+          {t('w_process')}
         </button>
         <button className="action-btn" onClick={() => setShowForm(!showForm)}>
-          📥 {showForm ? 'Скрыть форму' : 'Добавить вещь'}
+          {showForm ? t('w_hide') : t('w_add')}
         </button>
       </div>
 
@@ -207,7 +248,7 @@ export function WardrobePage() {
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Название (например, Красные кеды)"
+            placeholder={t('w_name_ph')}
             required
             style={{ padding: 10, border: '1px solid #ddd', borderRadius: 6 }}
           />
@@ -223,13 +264,13 @@ export function WardrobePage() {
           <input
             value={color}
             onChange={(e) => setColor(e.target.value)}
-            placeholder="Цвет (например, red)"
+            placeholder={t('w_color_ph')}
             style={{ padding: 10, border: '1px solid #ddd', borderRadius: 6 }}
           />
           <input
             value={price}
             onChange={(e) => setPrice(e.target.value)}
-            placeholder="Цена (необязательно), например 2500"
+            placeholder={t('w_price_ph')}
             type="number"
             style={{ padding: 10, border: '1px solid #ddd', borderRadius: 6 }}
           />
@@ -241,10 +282,10 @@ export function WardrobePage() {
           />
           <label style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 13 }}>
             <input type="checkbox" checked={aiCut} onChange={(e) => setAiCut(e.target.checked)} />
-            ✂ Убрать фон с фото (AI)
+            {t('w_ai_cut')}
           </label>
           <button type="submit" disabled={saving} className="action-btn primary" style={{ width: '100%' }}>
-            {saving ? 'Сохраняем...' : 'Положить в шкаф'}
+            {saving ? t('w_saving') : t('w_save')}
           </button>
         </form>
       )}
@@ -252,7 +293,7 @@ export function WardrobePage() {
       {message && <div className="card muted">{message}</div>}
 
       {items.length === 0 ? (
-        <div className="card muted">Пока пусто. Нажмите «📥 Добавить вещь» — и она ляжет в облачный шкаф.</div>
+        <div className="card muted">{t('w_empty')}</div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
           {items.map((item, i) => (
@@ -292,7 +333,7 @@ export function WardrobePage() {
         >
           <div className="card" style={{ width: '100%', maxWidth: 340, margin: 0, maxHeight: '85vh', overflowY: 'auto' }} onClick={(e) => e.stopPropagation()}>
             <div className="row" style={{ marginBottom: 8 }}>
-              <strong>Карточка вещи</strong>
+              <strong>{t('w_card')}</strong>
               <button
                 className="action-btn"
                 style={{ minWidth: 0, padding: '4px 10px' }}
@@ -321,10 +362,10 @@ export function WardrobePage() {
                     <option key={c} value={c}>{c}</option>
                   ))}
                 </select>
-                <input value={editColor} onChange={(e) => setEditColor(e.target.value)} placeholder="Цвет" style={{ padding: 10, border: '1px solid #ddd', borderRadius: 6 }} />
-                <input value={editPrice} onChange={(e) => setEditPrice(e.target.value)} placeholder="Цена" type="number" style={{ padding: 10, border: '1px solid #ddd', borderRadius: 6 }} />
+                <input value={editColor} onChange={(e) => setEditColor(e.target.value)} placeholder={t('w_edit_color_ph')} style={{ padding: 10, border: '1px solid #ddd', borderRadius: 6 }} />
+                <input value={editPrice} onChange={(e) => setEditPrice(e.target.value)} placeholder={t('w_edit_price_ph')} type="number" style={{ padding: 10, border: '1px solid #ddd', borderRadius: 6 }} />
                 <button className="action-btn primary" style={{ width: '100%' }} onClick={handleSaveEdit} disabled={saving}>
-                  {saving ? 'Сохраняем...' : 'Сохранить'}
+                  {saving ? t('w_saving') : t('w_edit_save')}
                 </button>
               </div>
             ) : (
@@ -335,8 +376,8 @@ export function WardrobePage() {
                   {current.color ? ` · ${current.color}` : ''}
                 </div>
                 <div className="muted" style={{ textAlign: 'center', marginBottom: 12, fontSize: 12 }}>
-                  Выходов: {current.wears ?? 0}
-                  {current.price != null ? ` · Цена: ${current.price}` : ''}
+                  {t('w_wears')} {current.wears ?? 0}
+                  {current.price != null ? ` · ${t('w_price')} ${current.price}` : ''}
                 </div>
                 <div className="row" style={{ marginBottom: 8 }}>
                   <button
@@ -349,14 +390,14 @@ export function WardrobePage() {
                       setEditPrice(current.price != null ? String(current.price) : '')
                     }}
                   >
-                    ✏️ Редактировать
+                    {t('w_edit')}
                   </button>
-                  <button className="action-btn" onClick={handleWear}>👗 +1 выход</button>
+                  <button className="action-btn" onClick={handleWear}>{t('w_wear')}</button>
                 </div>
                 <div className="row">
-                  <button className="action-btn" onClick={() => setCardIndex((cardIndex! - 1 + items.length) % items.length)}>Назад</button>
+                  <button className="action-btn" onClick={() => setCardIndex((cardIndex! - 1 + items.length) % items.length)}>{t('w_back')}</button>
                   <span className="muted">Style Twin</span>
-                  <button className="action-btn" onClick={() => setCardIndex((cardIndex! + 1) % items.length)}>Далее</button>
+                  <button className="action-btn" onClick={() => setCardIndex((cardIndex! + 1) % items.length)}>{t('w_next')}</button>
                 </div>
                 <button
                   className="action-btn"
@@ -368,7 +409,7 @@ export function WardrobePage() {
                   }}
                   onClick={handleDelete}
                 >
-                  {confirmDelete ? 'Точно удалить?' : '🗑 Удалить вещь'}
+                  {confirmDelete ? t('w_del_sure') : t('w_del')}
                 </button>
               </>
             )}
