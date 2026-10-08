@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useLang } from '../i18n'
+import { fetchWeather, formatWeather, type Weather } from '../lib/weather'
 
 type Item = { id: string; name: string; category: string; color: string | null; image_url: string | null }
 
@@ -13,9 +14,7 @@ const CATEGORY_ICON: Record<string, string> = {
   other: '🧺',
 }
 
-const WEATHER = { temp: 18, cond: 'rain' }
-
-function pickOutfit(items: Item[], seed: number): Item[] {
+function pickOutfit(items: Item[], seed: number, weather: Weather): Item[] {
   if (items.length === 0) return []
   const byCat = (c: string) => items.filter((i) => i.category === c)
   const tops = byCat('tops')
@@ -42,42 +41,50 @@ function pickOutfit(items: Item[], seed: number): Item[] {
     if (any) result.push(any)
   }
 
-  if (WEATHER.cond === 'rain') {
+  if (weather.condition === 'rain' || weather.condition === 'snow') {
     const s = pick(shoes, 2)
     if (s && !result.includes(s)) result.push(s)
   }
-  const a = pick(accessories, 3)
-  if (a) result.push(a)
+  if (weather.temp <= 10) {
+    const a = pick(accessories, 3)
+    if (a) result.push(a)
+  }
 
   return result.slice(0, 5)
 }
 
-export function TodayPage() {
-  const { t } = useLang()
+export function TodayPage({ city }: { city: string }) {
+  const { t, lang } = useLang()
   const [items, setItems] = useState<Item[]>([])
+  const [weather, setWeather] = useState<Weather | null>(null)
   const [seed, setSeed] = useState(0)
   const [loading, setLoading] = useState(true)
   const [saved, setSaved] = useState(false)
   const [message, setMessage] = useState('')
 
   useEffect(() => {
-    supabase
-      .from('wardrobe_items')
-      .select('id, name, category, color, image_url')
-      .then(({ data, error }) => {
-        if (!error && data) setItems(data)
-        setLoading(false)
-      })
-  }, [])
+    setLoading(true)
+    Promise.all([
+      supabase.from('wardrobe_items').select('id, name, category, color, image_url'),
+      fetchWeather(city, lang),
+    ]).then(([itemsRes, weatherData]) => {
+      if (!itemsRes.error && itemsRes.data) setItems(itemsRes.data)
+      setWeather(weatherData)
+      setLoading(false)
+    })
+  }, [city, lang])
 
-  const outfit = pickOutfit(items, seed)
+  const outfit = weather ? pickOutfit(items, seed, weather) : []
 
   const reasonFor = (): string => {
+    if (!weather) return ''
     const parts: string[] = []
-    parts.push(t('why_office'))
-    parts.push(t('why_rain'))
-    if (WEATHER.temp <= 18) parts.push(t('why_cool'))
-    return `${t('why_prefix')} ${parts.join(', ')}.`
+    if (weather.condition === 'rain') parts.push(lang === 'ru' ? 'дождь — закрытая обувь' : 'rain — closed shoes')
+    if (weather.condition === 'snow') parts.push(lang === 'ru' ? 'снег — тёплая обувь' : 'snow — warm shoes')
+    if (weather.temp <= 10) parts.push(lang === 'ru' ? 'холодно — добавьте аксессуары' : 'cold — add accessories')
+    if (weather.temp <= 18 && weather.temp > 10) parts.push(lang === 'ru' ? 'прохладно — возьмите слой сверху' : 'cool — add a top layer')
+    if (parts.length === 0) parts.push(lang === 'ru' ? 'настроение и ваш шкаф!' : 'mood and your wardrobe!')
+    return `${lang === 'ru' ? 'Почему:' : 'Why:'} ${parts.join(', ')}.`
   }
 
   const saveLook = async () => {
@@ -85,9 +92,10 @@ export function TodayPage() {
     try {
       const { data: userData, error: userError } = await supabase.auth.getUser()
       if (userError || !userData.user) throw userError
+      const weatherText = weather ? `${weather.temp}° ${weather.description}` : ''
       const { error } = await supabase.from('looks').insert({
         user_id: userData.user.id,
-        name: t('look_name_today'),
+        name: `${lang === 'ru' ? 'Сегодня' : 'Today'}: ${weatherText}`,
         item_ids: outfit.map((i) => i.id),
       })
       if (error) throw error
@@ -103,6 +111,10 @@ export function TodayPage() {
 
   return (
     <div>
+      {weather && (
+        <div className="weather">✳ {formatWeather(weather)} · {city}</div>
+      )}
+      <h1 className="screen-title">{t('today_title')}</h1>
       <div className="card">
         <div style={{ fontWeight: 700, marginBottom: 8 }}>{t('today_look')}</div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>

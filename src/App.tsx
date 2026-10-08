@@ -16,6 +16,9 @@ function App() {
   const [tab, setTab] = useState<Tab>('today')
   const [showPro, setShowPro] = useState(false)
   const [proMsg, setProMsg] = useState('')
+  const [city, setCity] = useState(() =>
+    typeof localStorage !== 'undefined' ? localStorage.getItem('st_city') ?? 'Moscow' : 'Moscow'
+  )
   const { lang, setLang, t } = useLang()
 
   useEffect(() => {
@@ -53,27 +56,9 @@ function App() {
       </div>
 
       <main className="screen">
-        {tab === 'today' && (
-          <>
-            <div className="weather">{t('weather')}</div>
-            <div className="chips">
-              <span className="chip">{t('chip_office')}</span>
-              <span className="chip">{t('chip_meeting')}</span>
-            </div>
-            <h1 className="screen-title">{t('today_title')}</h1>
-            <div className="actions">
-              <button className="action-btn primary" onClick={() => setTab('tryon')}>{t('btn_tryon')}</button>
-              <button className="action-btn" onClick={() => setTab('wardrobe')}>{t('btn_wardrobe')}</button>
-              <button className="action-btn" onClick={() => setTab('looks')}>{t('btn_looks')}</button>
-            </div>
-            <TodayPage />
-          </>
-        )}
-
+        {tab === 'today' && <TodayPage city={city} />}
         {tab === 'wardrobe' && <WardrobePage />}
-
         {tab === 'tryon' && <TryOnPage />}
-
         {tab === 'looks' && <LooksPage />}
 
         {tab === 'profile' && (
@@ -88,6 +73,23 @@ function App() {
                   <div style={{ fontWeight: 600 }}>Анна К.</div>
                   <div className="muted">{email}</div>
                 </div>
+              </div>
+            </div>
+            <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div className="muted" style={{ fontSize: 12 }}>{lang === 'ru' ? 'Город для погоды' : 'City for weather'}</div>
+              <input
+                value={city}
+                onChange={(e) => {
+                  setCity(e.target.value)
+                  localStorage.setItem('st_city', e.target.value)
+                }}
+                placeholder="Moscow, London, New York..."
+                style={{ padding: 10, border: '1px solid #ddd', borderRadius: 6 }}
+              />
+              <div className="muted" style={{ fontSize: 11 }}>
+                {lang === 'ru'
+                  ? 'Доступно: Moscow, Saint Petersburg, London, New York, Paris, Berlin, Tokyo'
+                  : 'Available: Moscow, Saint Petersburg, London, New York, Paris, Berlin, Tokyo'}
               </div>
             </div>
             <div className="card row" onClick={() => setTab('wardrobe')} style={{ cursor: 'pointer' }}>
@@ -136,11 +138,7 @@ function App() {
               <span className="muted" style={{ textDecoration: 'line-through' }}>$4.99 /мес</span>
               <span style={{ fontWeight: 700, color: 'var(--accent)' }}>{t('pro_deal')}</span>
             </div>
-            <button
-              className="action-btn primary"
-              style={{ width: '100%' }}
-              onClick={() => setProMsg(t('pro_msg'))}
-            >
+            <button className="action-btn primary" style={{ width: '100%' }} onClick={() => setProMsg(t('pro_msg'))}>
               {t('pro_btn')}
             </button>
             {proMsg && <div className="muted" style={{ textAlign: 'center', marginTop: 8 }}>{proMsg}</div>}
