@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useLang } from '../i18n'
 
-type Item = { id: string; name: string; category: string; image_url: string | null }
+type Item = { id: string; name: string; category: string; color: string | null; image_url: string | null }
 
 const CATEGORY_ICON: Record<string, string> = {
   tops: '👕',
@@ -13,21 +13,114 @@ const CATEGORY_ICON: Record<string, string> = {
   other: '🧺',
 }
 
+const COLOR_HEX: Record<string, string> = {
+  white: '#f5f5f5', 'белый': '#f5f5f5',
+  black: '#1f1f1f', 'чёрный': '#1f1f1f', 'черный': '#1f1f1f',
+  blue: '#3b82f6', 'синий': '#3b82f6', 'голубой': '#7dd3fc',
+  red: '#ef4444', 'красный': '#ef4444',
+  brown: '#8b5a2b', 'коричневый': '#8b5a2b',
+  green: '#22c55e', 'зелёный': '#22c55e', 'зеленый': '#22c55e',
+  yellow: '#eab308', 'жёлтый': '#eab308', 'желтый': '#eab308',
+  pink: '#ec4899', 'розовый': '#ec4899',
+  gray: '#9ca3af', 'серый': '#9ca3af',
+  beige: '#d6c7a1', 'бежевый': '#d6c7a1',
+  navy: '#1e3a8a',
+}
+
+const colorHex = (c: string | null) => COLOR_HEX[(c ?? '').toLowerCase().trim()] ?? '#b9b9b9'
+
 const MAX_LAYERS = 5
 
+function Mannequin({ layers, angle }: { layers: Item[]; angle: number }) {
+  const front = Math.cos((angle * Math.PI) / 180) >= 0
+  const byCat = (c: string) => layers.find((i) => i.category === c)
+  const top = byCat('tops')
+  const bottom = byCat('bottoms')
+  const dress = byCat('dresses')
+  const shoes = byCat('shoes')
+  const acc = byCat('accessories')
+  const skin = '#d9c1a3'
+  const base = '#cfcfcf'
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'center',
+        perspective: 800,
+      }}
+    >
+      <div style={{ transform: `rotateY(${angle}deg)`, transition: 'transform 0.1s linear' }}>
+        <svg width="220" height="340" viewBox="0 0 220 340">
+          {/* голова */}
+          <circle cx="110" cy="38" r="20" fill={skin} />
+          {front ? (
+            <>
+              <circle cx="103" cy="36" r="2" fill="#333" />
+              <circle cx="117" cy="36" r="2" fill="#333" />
+            </>
+          ) : (
+            <path d="M90,32 A20,20 0 0,1 130,32 L130,44 A20,20 0 0,1 90,44 Z" fill="#6b4f2f" />
+          )}
+          <rect x="104" y="56" width="12" height="10" fill={skin} />
+          {/* руки */}
+          <path d="M78,66 L62,138 L72,142 L86,82 Z" fill={skin} />
+          <path d="M142,66 L158,138 L148,142 L134,82 Z" fill={skin} />
+          {/* тело базовое */}
+          <path d="M78,66 L142,66 L136,152 L84,152 Z" fill={base} />
+          {/* ноги базовые */}
+          <rect x="92" y="152" width="14" height="146" fill={base} />
+          <rect x="114" y="152" width="14" height="146" fill={base} />
+          {/* низ (штаны) */}
+          {bottom && (
+            <path d="M84,150 L136,150 L132,298 L116,298 L112,200 L108,200 L104,298 L88,298 Z" fill={colorHex(bottom.color)} stroke="#00000022" />
+          )}
+          {/* верх (рубашка) */}
+          {top && (
+            <>
+              <path d="M76,64 L144,64 L140,154 L80,154 Z" fill={colorHex(top.color)} stroke="#00000022" />
+              <path d="M76,64 L62,120 L72,124 L84,82 Z" fill={colorHex(top.color)} />
+              <path d="M144,64 L158,120 L148,124 L136,82 Z" fill={colorHex(top.color)} />
+            </>
+          )}
+          {/* платье */}
+          {dress && (
+            <path d="M76,64 L144,64 L150,112 L162,224 L58,224 L70,112 Z" fill={colorHex(dress.color)} stroke="#00000022" />
+          )}
+          {/* обувь */}
+          {shoes && (
+            <>
+              <ellipse cx="99" cy="306" rx="15" ry="8" fill={colorHex(shoes.color)} />
+              <ellipse cx="121" cy="306" rx="15" ry="8" fill={colorHex(shoes.color)} />
+            </>
+          )}
+          {/* аксессуар (сумка) */}
+          {acc && (
+            <>
+              <line x1="138" y1="70" x2="152" y2="150" stroke={colorHex(acc.color)} strokeWidth="4" />
+              <rect x="142" y="150" width="28" height="24" rx="5" fill={colorHex(acc.color)} stroke="#00000022" />
+            </>
+          )}
+        </svg>
+      </div>
+    </div>
+  )
+}
+
 export function TryOnPage() {
-  const { t } = useLang()
+  const { t, lang } = useLang()
   const [items, setItems] = useState<Item[]>([])
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState<string[]>([])
-  const [view, setView] = useState<'front' | 'back'>('front')
+  const [angle, setAngle] = useState(0)
   const [tried, setTried] = useState(false)
   const [message, setMessage] = useState('')
+  const drag = useRef<{ x: number; a: number } | null>(null)
 
   useEffect(() => {
     supabase
       .from('wardrobe_items')
-      .select('id, name, category, image_url')
+      .select('id, name, category, color, image_url')
       .then(({ data, error }) => {
         if (!error && data) setItems(data)
         setLoading(false)
@@ -45,6 +138,8 @@ export function TryOnPage() {
   const layerItems = selected
     .map((id) => items.find((i) => i.id === id))
     .filter((x): x is Item => Boolean(x))
+
+  const front = Math.cos((angle * Math.PI) / 180) >= 0
 
   const saveLook = async () => {
     setMessage('')
@@ -74,32 +169,47 @@ export function TryOnPage() {
         <div className="row" style={{ marginBottom: 8 }}>
           <button
             className="action-btn"
-            style={{ background: view === 'front' ? '#111' : '#fff', color: view === 'front' ? '#fff' : '#111' }}
-            onClick={() => setView('front')}
+            style={{ background: front ? '#111' : '#fff', color: front ? '#fff' : '#111' }}
+            onClick={() => setAngle(0)}
           >
             {t('tryon_front')}
           </button>
           <button
             className="action-btn"
-            style={{ background: view === 'back' ? '#111' : '#fff', color: view === 'back' ? '#fff' : '#111' }}
-            onClick={() => setView('back')}
+            style={{ background: !front ? '#111' : '#fff', color: !front ? '#fff' : '#111' }}
+            onClick={() => setAngle(180)}
           >
             {t('tryon_back')}
           </button>
         </div>
-        <div style={{ position: 'relative', minHeight: 220, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ fontSize: 96, opacity: 0.25 }}>{view === 'front' ? '🧍' : '🧍‍♀️'}</div>
-          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
-            {(view === 'back' ? [...layerItems].reverse() : layerItems).map((it) => (
-              <div
-                key={it.id}
-                style={{ background: 'rgba(255,255,255,0.9)', borderRadius: 999, padding: '2px 10px', fontSize: 13, boxShadow: '0 1px 3px rgba(0,0,0,0.15)' }}
-              >
-                {CATEGORY_ICON[it.category] ?? '🧺'} {it.name}
-              </div>
-            ))}
-          </div>
+        <div
+          style={{ touchAction: 'none', cursor: 'grab', minHeight: 340 }}
+          onPointerDown={(e) => {
+            e.currentTarget.setPointerCapture(e.pointerId)
+            drag.current = { x: e.clientX, a: angle }
+          }}
+          onPointerMove={(e) => {
+            if (drag.current) {
+              setAngle(((drag.current.a + (e.clientX - drag.current.x) * 0.6) % 360 + 360) % 360)
+            }
+          }}
+          onPointerUp={() => {
+            drag.current = null
+          }}
+        >
+          <Mannequin layers={layerItems} angle={angle} />
         </div>
+        <div className="muted" style={{ textAlign: 'center', fontSize: 11, marginTop: 4 }}>
+          {lang === 'ru' ? '↔ потяните манекен, чтобы повернуть' : '↔ drag the mannequin to rotate'}
+        </div>
+        <input
+          type="range"
+          min={0}
+          max={359}
+          value={Math.round(angle)}
+          onChange={(e) => setAngle(Number(e.target.value))}
+          style={{ width: '100%', marginTop: 6 }}
+        />
         <div className="row" style={{ marginTop: 8 }}>
           <span>{tried ? t('tryon_ready') : t('tryon_room')}</span>
           <span className="muted">{selected.length} / {MAX_LAYERS} {t('tryon_layers')}</span>
@@ -113,6 +223,7 @@ export function TryOnPage() {
           <label key={item.id} className="card row" style={{ marginBottom: 0, padding: 10, cursor: 'pointer' }}>
             <span style={{ fontSize: 14 }}>
               {CATEGORY_ICON[item.category] ?? '🧺'} {item.name}
+              {item.color ? ` · ${item.color}` : ''}
             </span>
             <input type="checkbox" checked={selected.includes(item.id)} onChange={() => toggle(item.id)} />
           </label>
