@@ -4,6 +4,7 @@ import { useLang } from '../i18n'
 import { fetchWeather, formatWeather, type Weather } from '../lib/weather'
 
 type Item = { id: string; name: string; category: string; color: string | null; image_url: string | null }
+type EventId = 'office' | 'meeting' | 'date' | 'sport' | 'walk' | 'party' | 'theater' | 'trip'
 type NavTab = 'tryon' | 'wardrobe' | 'looks'
 
 const CATEGORY_ICON: Record<string, string> = {
@@ -18,7 +19,31 @@ const CATEGORY_ICON: Record<string, string> = {
 const NEUTRAL = ['white', 'black', 'gray', 'grey', 'blue', 'navy', 'beige', 'brown', 'белый', 'чёрный', 'черный', 'серый', 'синий', 'бежевый', 'коричневый']
 const STRONG = ['red', 'pink', 'yellow', 'green', 'красный', 'розовый', 'жёлтый', 'желтый', 'зелёный', 'зеленый']
 
-function pickOutfit(items: Item[], seed: number, weather: Weather): Item[] {
+const EVENT_ORDER: EventId[] = ['office', 'meeting', 'date', 'sport', 'walk', 'party', 'theater', 'trip']
+
+const EVENT_LABELS: Record<EventId, { ru: string; en: string }> = {
+  office: { ru: 'офис', en: 'office' },
+  meeting: { ru: 'встреча', en: 'meeting' },
+  date: { ru: 'свидание', en: 'date' },
+  sport: { ru: 'спорт', en: 'sport' },
+  walk: { ru: 'прогулка', en: 'walk' },
+  party: { ru: 'вечеринка', en: 'party' },
+  theater: { ru: 'театр', en: 'theater' },
+  trip: { ru: 'поездка', en: 'trip' },
+}
+
+const EVENT_REASONS: Record<EventId, { ru: string; en: string }> = {
+  office: { ru: 'офисный дресс-код — нейтральная палитра', en: 'office dress code — neutral palette' },
+  meeting: { ru: 'встреча — образ держит вид весь день', en: 'meeting — the look stays sharp all day' },
+  date: { ru: 'свидание — немного яркости уместно', en: 'date — a touch of brightness welcome' },
+  sport: { ru: 'спорт — свобода движений и обувь', en: 'sport — freedom of movement and proper shoes' },
+  walk: { ru: 'прогулка — комфорт, обувь и сумка', en: 'walk — comfort, shoes and a bag' },
+  party: { ru: 'вечеринка — яркие цвета и аксессуары', en: 'party — bright colors and accessories' },
+  theater: { ru: 'театр — сдержанная элегантность', en: 'theater — restrained elegance' },
+  trip: { ru: 'поездка — практичная капсула: всё под рукой', en: 'trip — practical capsule: everything at hand' },
+}
+
+function pickOutfit(items: Item[], seed: number, weather: Weather, event: EventId): Item[] {
   if (items.length === 0) return []
   const byCat = (c: string) => items.filter((i) => i.category === c)
   const tops = byCat('tops')
@@ -30,15 +55,29 @@ function pickOutfit(items: Item[], seed: number, weather: Weather): Item[] {
   const pick = <T,>(arr: T[], offset: number): T | undefined =>
     arr.length ? arr[(seed + offset) % arr.length] : undefined
 
+  const neutralFirst = (arr: Item[]): Item | undefined =>
+    arr.find((x) => NEUTRAL.includes((x.color ?? '').toLowerCase())) ?? arr[0]
+  const strongFirst = (arr: Item[]): Item | undefined =>
+    arr.find((x) => STRONG.includes((x.color ?? '').toLowerCase())) ?? arr[0]
+
   const result: Item[] = []
 
-  if (tops.length && bottoms.length) {
-    let t1 = pick(tops, 0)
-    let b = pick(bottoms, 1)
-    const neutralTop = tops.find((x) => NEUTRAL.includes((x.color ?? '').toLowerCase()))
-    if (neutralTop) t1 = neutralTop
-    const neutralBottom = bottoms.find((x) => NEUTRAL.includes((x.color ?? '').toLowerCase()))
-    if (neutralBottom) b = neutralBottom
+  if ((event === 'date' || event === 'theater' || event === 'party') && dresses.length) {
+    const d = event === 'theater' ? neutralFirst(dresses) : strongFirst(dresses)
+    if (d) result.push(d)
+  } else if (tops.length && bottoms.length) {
+    let t1: Item | undefined
+    let b: Item | undefined
+    if (event === 'office' || event === 'meeting' || event === 'theater') {
+      t1 = neutralFirst(tops)
+      b = neutralFirst(bottoms)
+    } else if (event === 'party' || event === 'date') {
+      t1 = strongFirst(tops)
+      b = neutralFirst(bottoms)
+    } else {
+      t1 = pick(tops, 0)
+      b = pick(bottoms, 1)
+    }
     if (
       t1 && b && t1.color && b.color &&
       t1.color.toLowerCase() === b.color.toLowerCase() &&
@@ -50,18 +89,20 @@ function pickOutfit(items: Item[], seed: number, weather: Weather): Item[] {
     if (t1) result.push(t1)
     if (b) result.push(b)
   } else if (dresses.length) {
-    const d = pick(dresses, 0)
+    const d = event === 'theater' || event === 'office' || event === 'meeting' ? neutralFirst(dresses) : strongFirst(dresses)
     if (d) result.push(d)
   } else {
     const any = pick(items, 0)
     if (any) result.push(any)
   }
 
-  if (weather.condition === 'rain' || weather.condition === 'snow') {
+  const shoesEvents: EventId[] = ['sport', 'walk', 'party', 'theater', 'trip']
+  if (weather.condition === 'rain' || weather.condition === 'snow' || shoesEvents.includes(event)) {
     const s = pick(shoes, 2)
     if (s && !result.includes(s)) result.push(s)
   }
-  if (weather.temp <= 10) {
+  const accEvents: EventId[] = ['walk', 'date', 'party', 'theater', 'trip']
+  if (weather.temp <= 10 || accEvents.includes(event)) {
     const a = pick(accessories, 3)
     if (a && !result.includes(a)) result.push(a)
   }
@@ -73,6 +114,7 @@ export function TodayPage({ city, onNavigate }: { city: string; onNavigate: (tab
   const { t, lang } = useLang()
   const [items, setItems] = useState<Item[]>([])
   const [weather, setWeather] = useState<Weather | null>(null)
+  const [event, setEvent] = useState<EventId>('office')
   const [seed, setSeed] = useState(0)
   const [loading, setLoading] = useState(true)
   const [saved, setSaved] = useState(false)
@@ -90,13 +132,12 @@ export function TodayPage({ city, onNavigate }: { city: string; onNavigate: (tab
     })
   }, [city, lang])
 
-  const outfit = weather ? pickOutfit(items, seed, weather) : []
+  const outfit = weather ? pickOutfit(items, seed, weather, event) : []
 
   const reasonFor = (): string => {
     if (!weather) return ''
     const parts: string[] = []
-    parts.push(lang === 'ru' ? 'офисный дресс-код — нейтральная палитра' : 'office dress code — neutral palette')
-    parts.push(lang === 'ru' ? 'встреча 14:00 — образ держит вид весь день' : 'meeting 2:00 PM — the look stays sharp all day')
+    parts.push(lang === 'ru' ? EVENT_REASONS[event].ru : EVENT_REASONS[event].en)
     if (weather.condition === 'rain') parts.push(lang === 'ru' ? 'дождь — закрытая обувь' : 'rain — closed shoes')
     if (weather.condition === 'snow') parts.push(lang === 'ru' ? 'снег — тёплая обувь' : 'snow — warm shoes')
     if (weather.temp <= 10) parts.push(lang === 'ru' ? 'холодно — добавьте аксессуары' : 'cold — add accessories')
@@ -110,9 +151,10 @@ export function TodayPage({ city, onNavigate }: { city: string; onNavigate: (tab
       const { data: userData, error: userError } = await supabase.auth.getUser()
       if (userError || !userData.user) throw userError
       const weatherText = weather ? `${weather.temp}° ${weather.description}` : ''
+      const eventText = lang === 'ru' ? EVENT_LABELS[event].ru : EVENT_LABELS[event].en
       const { error } = await supabase.from('looks').insert({
         user_id: userData.user.id,
-        name: `${lang === 'ru' ? 'Сегодня: офис, встреча 14:00' : 'Today: office, meeting 2:00 PM'} · ${weatherText}`,
+        name: `${lang === 'ru' ? 'Сегодня' : 'Today'}: ${eventText} · ${weatherText}`,
         item_ids: outfit.map((i) => i.id),
       })
       if (error) throw error
@@ -132,8 +174,19 @@ export function TodayPage({ city, onNavigate }: { city: string; onNavigate: (tab
         <div className="weather">✳ {formatWeather(weather)} · {city}</div>
       )}
       <div className="chips" style={{ marginBottom: 8 }}>
-        <span className="chip">{lang === 'ru' ? 'офис' : 'office'}</span>
-        <span className="chip">{lang === 'ru' ? 'встреча 14:00' : 'meeting 2:00 PM'}</span>
+        <button
+          className="chip"
+          style={{ cursor: 'pointer', background: '#111', color: '#fff', border: '1px solid #111', fontWeight: 600 }}
+          onClick={() => {
+            setEvent(EVENT_ORDER[(EVENT_ORDER.indexOf(event) + 1) % EVENT_ORDER.length])
+            setSaved(false)
+          }}
+        >
+          {lang === 'ru' ? 'куда: ' : 'going: '} {lang === 'ru' ? EVENT_LABELS[event].ru : EVENT_LABELS[event].en} ▸
+        </button>
+        <span className="muted" style={{ fontSize: 11 }}>
+          {lang === 'ru' ? 'нажмите, чтобы сменить направление' : 'tap to change destination'}
+        </span>
       </div>
       <h1 className="screen-title">{t('today_title')}</h1>
       <div className="actions" style={{ marginBottom: 12 }}>
