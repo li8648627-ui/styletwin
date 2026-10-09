@@ -5,6 +5,7 @@ import { fetchWeather, formatWeather, type Weather } from '../lib/weather'
 
 type Item = { id: string; name: string; category: string; color: string | null; image_url: string | null }
 type EventId = 'office' | 'date' | 'sport' | 'walk'
+type NavTab = 'tryon' | 'wardrobe' | 'looks'
 
 const CATEGORY_ICON: Record<string, string> = {
   tops: '👕',
@@ -81,7 +82,7 @@ function pickOutfit(items: Item[], seed: number, weather: Weather, event: EventI
   return result.slice(0, 5)
 }
 
-export function TodayPage({ city }: { city: string }) {
+export function TodayPage({ city, onNavigate }: { city: string; onNavigate: (tab: NavTab) => void }) {
   const { t, lang } = useLang()
   const [items, setItems] = useState<Item[]>([])
   const [weather, setWeather] = useState<Weather | null>(null)
@@ -148,7 +149,6 @@ export function TodayPage({ city }: { city: string }) {
       {weather && (
         <div className="weather">✳ {formatWeather(weather)} · {city}</div>
       )}
-      <h1 className="screen-title">{t('today_title')}</h1>
       <div className="chips" style={{ marginBottom: 8 }}>
         {(Object.keys(EVENT_LABELS) as EventId[]).map((ev) => (
           <button
@@ -168,6 +168,12 @@ export function TodayPage({ city }: { city: string }) {
             {EVENT_LABELS[ev].icon} {lang === 'ru' ? EVENT_LABELS[ev].ru : EVENT_LABELS[ev].en}
           </button>
         ))}
+      </div>
+      <h1 className="screen-title">{t('today_title')}</h1>
+      <div className="actions" style={{ marginBottom: 12 }}>
+        <button className="action-btn primary" onClick={() => onNavigate('tryon')}>{t('btn_tryon')}</button>
+        <button className="action-btn" onClick={() => onNavigate('wardrobe')}>{t('btn_wardrobe')}</button>
+        <button className="action-btn" onClick={() => onNavigate('looks')}>{t('btn_looks')}</button>
       </div>
       <div className="card">
         <div style={{ fontWeight: 700, marginBottom: 8 }}>{t('today_look')}</div>

@@ -56,7 +56,7 @@ function App() {
       </div>
 
       <main className="screen">
-        {tab === 'today' && <TodayPage city={city} />}
+        {tab === 'today' && <TodayPage city={city} onNavigate={setTab} />}
         {tab === 'wardrobe' && <WardrobePage />}
         {tab === 'tryon' && <TryOnPage />}
         {tab === 'looks' && <LooksPage />}
