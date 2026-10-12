@@ -1,62 +1,75 @@
+:root {
+  --bg: #eef0f4;
+  --card: #ffffff;
+  --ink: #111318;
+  --muted: #8b8f98;
+  --line: #e6e8ee;
+  --accent: #d43bf0;
+  --black-seg: #111318;
+}
+
+body {
+  background: var(--bg);
+}
+
 .phone {
-  max-width: 420px;
+  max-width: 480px;
   margin: 0 auto;
   min-height: 100vh;
-  background: #f7f7fa;
+  background: var(--bg);
   position: relative;
-  box-shadow: 0 0 40px rgba(0, 0, 0, 0.08);
 }
 
 .statusbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 18px 4px;
+  padding: 10px 20px 4px;
   font-size: 12px;
   font-weight: 600;
-  color: #111;
+  color: var(--ink);
 }
 
 .appbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 6px 18px 12px;
+  padding: 6px 20px 12px;
 }
 
 .brand {
   font-weight: 800;
   font-size: 19px;
-  letter-spacing: -0.3px;
-  color: #111;
+  letter-spacing: -0.2px;
+  color: var(--ink);
 }
 
 .badge-free {
   font-size: 10px;
-  font-weight: 600;
-  padding: 4px 9px;
-  border: 1px solid #e3e3e8;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  padding: 5px 10px;
+  border: 1px solid var(--line);
   border-radius: 999px;
-  color: #8a8a8e;
-  background: #fff;
+  color: var(--muted);
+  background: var(--card);
 }
 
 .screen {
-  padding: 4px 16px 100px;
+  padding: 4px 20px 104px;
 }
 
 .screen-title {
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 800;
   letter-spacing: -0.4px;
   margin: 6px 0 12px;
-  color: #111;
+  color: var(--ink);
 }
 
 .weather {
   font-size: 13px;
-  color: #8a8a8e;
-  letter-spacing: 0.2px;
+  color: var(--muted);
   margin-bottom: 8px;
 }
 
@@ -72,11 +85,10 @@
   gap: 5px;
   padding: 7px 12px;
   border-radius: 999px;
-  background: #fff;
-  border: 1px solid #e8e8ec;
+  background: var(--card);
+  border: 1px solid var(--line);
   font-size: 12.5px;
-  color: #111;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  color: var(--ink);
 }
 
 .actions {
@@ -89,14 +101,14 @@
   flex: 1;
   padding: 13px 10px;
   border-radius: 14px;
-  background: #fff;
-  border: 1px solid #e8e8ec;
+  background: var(--card);
+  border: none;
   font-weight: 600;
   font-size: 13.5px;
-  color: #111;
+  color: var(--ink);
   cursor: pointer;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  transition: transform 0.06s ease, box-shadow 0.15s ease, background 0.15s ease;
+  box-shadow: 0 1px 2px rgba(16, 17, 24, 0.05);
+  transition: transform 0.06s ease;
 }
 
 .action-btn:active {
@@ -109,26 +121,20 @@
 }
 
 .action-btn.primary {
-  background: linear-gradient(135deg, #e879f9, #c026d3);
+  background: var(--accent);
   color: #fff;
-  border: none;
-  box-shadow: 0 6px 16px rgba(217, 70, 239, 0.35);
+  box-shadow: 0 4px 12px rgba(212, 59, 240, 0.28);
 }
 
 .card {
-  background: #fff;
-  border: 1px solid #f0f0f3;
-  border-radius: 18px;
+  background: var(--card);
+  border-radius: 16px;
   padding: 14px;
   margin-bottom: 10px;
-  box-shadow: 0 2px 10px rgba(20, 20, 43, 0.06);
-  animation: fadeUp 0.25s ease;
 }
 
 .card.muted {
-  background: #fafafc;
-  border: 1px dashed #d8d8de;
-  box-shadow: none;
+  color: var(--muted);
   text-align: center;
   padding: 18px 14px;
 }
@@ -141,7 +147,7 @@
 }
 
 .muted {
-  color: #8a8a8e;
+  color: var(--muted);
   font-size: 13px;
   line-height: 1.45;
 }
@@ -151,13 +157,11 @@
   bottom: 0;
   left: 0;
   right: 0;
-  max-width: 420px;
+  max-width: 480px;
   margin: 0 auto;
   display: flex;
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-top: 1px solid #ececf0;
+  background: var(--card);
+  border-top: 1px solid var(--line);
   padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
   z-index: 40;
 }
@@ -171,14 +175,13 @@
   align-items: center;
   gap: 2px;
   font-size: 10px;
-  color: #9a9aa0;
+  color: var(--muted);
   padding: 4px 0;
   cursor: pointer;
-  transition: color 0.15s ease;
 }
 
 .tab.active {
-  color: #c026d3;
+  color: var(--accent);
   font-weight: 700;
 }
 
@@ -186,20 +189,49 @@
   font-size: 18px;
 }
 
+/* Формы и контролы в костюме v11 (перекрывают инлайн-стили компонентов) */
+input,
+select {
+  background: var(--card) !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 12px !important;
+  padding: 11px 12px !important;
+  font-size: 14px !important;
+  color: var(--ink) !important;
+}
+
+input:focus,
+select:focus {
+  border-color: var(--accent) !important;
+  outline: none;
+}
+
+input[type='checkbox'] {
+  width: 18px !important;
+  height: 18px !important;
+  padding: 0 !important;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+input[type='range'] {
+  padding: 0 !important;
+  border: none !important;
+  background: transparent !important;
+  accent-color: var(--accent);
+  height: 24px !important;
+}
+
+input[type='file'] {
+  padding: 8px 0 !important;
+  border: none !important;
+  background: transparent !important;
+  font-size: 13px !important;
+}
+
 button:focus-visible,
 input:focus-visible,
 select:focus-visible {
-  outline: 2px solid #c026d3;
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
-}
-
-@keyframes fadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
