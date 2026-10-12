@@ -65,9 +65,21 @@ const EVENT_REASONS: Record<EventId, { ru: string; en: string }> = {
   trip: { ru: 'поездка — практичная капсула: всё под рукой', en: 'trip — practical capsule: everything at hand' },
 }
 
-function pickOutfit(items: Item[], seed: number, weather: Weather, event: EventId): Item[] {
+function pickOutfit(
+  items: Item[],
+  seed: number,
+  weather: Weather,
+  event: EventId,
+  prefs: Record<string, number>
+): Item[] {
   if (items.length === 0) return []
-  const byCat = (c: string) => items.filter((i) => i.category === c)
+  const score = (i: Item) => prefs[i.id] ?? 0
+  const poolOf = (arr: Item[]): Item[] => {
+    const clean = arr.filter((i) => score(i) >= 0)
+    const use = clean.length ? clean : arr
+    return [...use].sort((a, b) => score(b) - score(a))
+  }
+  const byCat = (c: string) => poolOf(items.filter((i) => i.category === c))
   const tops = byCat('tops')
   const bottoms = byCat('bottoms')
   const dresses = byCat('dresses')
@@ -136,6 +148,7 @@ export function TodayPage({ city, onNavigate }: { city: string; onNavigate: (tab
   const { t, lang } = useLang()
   const [items, setItems] = useState<Item[]>([])
   const [weather, setWeather] = useState<Weather | null>(null)
+  const [prefs, setPrefs] = useState<Record<string, number>>({})
   const [event, setEvent] = useState<EventId>('office')
   const [seed, setSeed] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -147,14 +160,60 @@ export function TodayPage({ city, onNavigate }: { city: string; onNavigate: (tab
     Promise.all([
       supabase.from('wardrobe_items').select('id, name, category, color, image_url'),
       fetchWeather(city, lang),
-    ]).then(([itemsRes, weatherData]) => {
+      supabase.from('preferences').select('item_id, score'),
+    ]).then(([itemsRes, weatherData, prefsRes]) => {
       if (!itemsRes.error && itemsRes.data) setItems(itemsRes.data)
       setWeather(weatherData)
+      const map: Record<string, number> = {}
+      ;(prefsRes.data ?? []).forEach((r: { item_id: string; score: number }) => {
+        map[r.item_id] = r.score
+      })
+      setPrefs(map)
       setLoading(false)
     })
   }, [city, lang])
 
-  const outfit = weather ? pickOutfit(items, seed, weather, event) : []
+  const outfit = weather ? pickOutfit(items, seed, weather, event, prefs) : []
+
+  const vote = async (delta: 1 | -1) => {
+    setMessage('')
+    try {
+      const { data: userData, error: userError } = await supabase.auth.getUser()
+      if (userError || !userData.user) throw userError
+      for (const it of outfit) {
+        const { data: existing } = await supabase
+          .from('preferences')
+          .select('id, score')
+          .eq('user_id', userData.user.id)
+          .eq('item_id', it.id)
+          .maybeSingle()
+        if (existing) {
+          const { error } = await supabase.from('preferences').update({ score: existing.score + delta }).eq('id', existing.id)
+          if (error) throw error
+        } else {
+          const { error } = await supabase.from('preferences').insert({ user_id: userData.user.id, item_id: it.id, score: delta })
+          if (error) throw error
+        }
+      }
+      const { data } = await supabase.from('preferences').select('item_id, score').eq('user_id', userData.user.id)
+      const map: Record<string, number> = {}
+      ;(data ?? []).forEach((r: { item_id: string; score: number }) => {
+        map[r.item_id] = r.score
+      })
+      setPrefs(map)
+      setMessage(
+        delta === 1
+          ? lang === 'ru'
+            ? '✅ Стилист запомнил: вам нравится этот образ!'
+            : '✅ Stylist remembered: you like this look!'
+          : lang === 'ru'
+            ? '👎 Поняла: такие сочетания буду предлагать реже.'
+            : '👎 Got it: I will suggest such combos less often.'
+      )
+    } catch (err: any) {
+      setMessage(`❌ ${err.message}`)
+    }
+  }
 
   const reasonFor = (): string => {
     if (!weather) return ''
@@ -283,6 +342,10 @@ export function TodayPage({ city, onNavigate }: { city: string; onNavigate: (tab
           </div>
         )}
         <div className="muted">{reasonFor()}</div>
+        <div className="row" style={{ marginTop: 10 }}>
+          <button className="action-btn" onClick={() => vote(1)}>👍 {lang === 'ru' ? 'Нравится' : 'Like'}</button>
+          <button className="action-btn" onClick={() => vote(-1)}>👎 {lang === 'ru' ? 'Не моё' : 'Not mine'}</button>
+        </div>
       </div>
       <div className="actions">
         <button className="action-btn primary" onClick={saveLook} disabled={saved}>
