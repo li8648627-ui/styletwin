@@ -159,11 +159,9 @@ export function TodayPage({ city, onNavigate }: { city: string; onNavigate: (tab
     setLoading(true)
     Promise.all([
       supabase.from('wardrobe_items').select('id, name, category, color, image_url'),
-      fetchWeather(city, lang),
       supabase.from('preferences').select('item_id, score'),
-    ]).then(([itemsRes, weatherData, prefsRes]) => {
+    ]).then(([itemsRes, prefsRes]) => {
       if (!itemsRes.error && itemsRes.data) setItems(itemsRes.data)
-      setWeather(weatherData)
       const map: Record<string, number> = {}
       ;(prefsRes.data ?? []).forEach((r: { item_id: string; score: number }) => {
         map[r.item_id] = r.score
@@ -171,6 +169,7 @@ export function TodayPage({ city, onNavigate }: { city: string; onNavigate: (tab
       setPrefs(map)
       setLoading(false)
     })
+    fetchWeather(city, lang).then(setWeather)
   }, [city, lang])
 
   const outfit = weather ? pickOutfit(items, seed, weather, event, prefs) : []
@@ -216,7 +215,7 @@ export function TodayPage({ city, onNavigate }: { city: string; onNavigate: (tab
   }
 
   const reasonFor = (): string => {
-    if (!weather) return ''
+    if (!weather) return lang === 'ru' ? 'Смотрим погоду за окном…' : 'Checking the weather…'
     const parts: string[] = []
     parts.push(lang === 'ru' ? EVENT_REASONS[event].ru : EVENT_REASONS[event].en)
     if (weather.condition === 'rain') parts.push(lang === 'ru' ? 'дождь — закрытая обувь' : 'rain — closed shoes')

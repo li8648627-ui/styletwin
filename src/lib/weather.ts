@@ -35,19 +35,23 @@ const CITY_COORDS: Record<string, { lat: number; lon: number }> = {
 export async function fetchWeather(city: string, lang: 'ru' | 'en'): Promise<Weather> {
   const key = city.toLowerCase().trim()
   const coords = CITY_COORDS[key] ?? CITY_COORDS['moscow']
+  const fallback: Weather = { temp: 18, condition: 'cloudy', description: lang === 'ru' ? 'облачно' : 'cloudy' }
 
   try {
-    const res = await fetch(
-      `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current_weather=true`
-    )
-    const data = await res.json()
-    const code = data.current_weather?.weathercode ?? 0
-    const temp = Math.round(data.current_weather?.temperature ?? 20)
+    const data = await Promise.race([
+      fetch(
+        `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current_weather=true`
+      ).then((r) => r.json()),
+      new Promise<null>((resolve) => setTimeout(() => resolve(null), 6000)),
+    ])
+    if (!data || !data.current_weather) return fallback
+    const code = data.current_weather.weathercode ?? 0
+    const temp = Math.round(data.current_weather.temperature ?? 20)
     const condition = CONDITION_MAP[code] ?? 'clear'
     const description = lang === 'ru' ? DESCRIPTION_RU[condition] : DESCRIPTION_EN[condition]
     return { temp, condition, description }
   } catch {
-    return { temp: 20, condition: 'clear', description: lang === 'ru' ? 'ясно' : 'clear' }
+    return fallback
   }
 }
 
