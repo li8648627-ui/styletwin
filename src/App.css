@@ -46,6 +46,12 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/* Синий эмодзи сигнала тонируем в тёплый графит */
+.statusbar span:last-child {
+  filter: grayscale(1) brightness(0.45);
+  opacity: 0.9;
+}
+
 .appbar {
   display: flex;
   justify-content: space-between;
@@ -78,7 +84,6 @@ body {
   transition: border-color 0.15s ease, color 0.15s ease;
 }
 
-/* Активная пилюля языка (RU/EN) — коричневая обводка вместо чёрной */
 .badge-free[style*='rgb(17, 17, 17)'] {
   border-color: var(--accent) !important;
   color: var(--accent-deep) !important;
@@ -173,7 +178,6 @@ body {
   box-shadow: 0 3px 8px rgba(168, 124, 79, 0.3);
 }
 
-/* Сегменты «спереди/сзади», «Манекен/Моё фото»: активный — коричневый */
 .action-btn[style*='rgb(17, 17, 17)'] {
   background: var(--accent) !important;
   color: #fff !important;
@@ -256,18 +260,19 @@ body {
   background: var(--accent-soft);
 }
 
+/* Иконки таббара: теплее и читабельнее, без грязных клякс */
 .tab-icon {
   font-size: 18px;
-  filter: grayscale(1) sepia(0.35) brightness(0.8);
-  opacity: 0.8;
+  filter: grayscale(1) sepia(0.45) brightness(0.95);
+  opacity: 0.75;
 }
 
 .tab.active .tab-icon {
-  filter: grayscale(1) sepia(0.6) brightness(0.55);
+  filter: grayscale(1) sepia(0.7) brightness(0.6);
   opacity: 1;
 }
 
-/* ПЕРЕЛЮЧАТЕЛЬ «Куда сегодня?» — селекторы теперь долетают (кнопка внутри div экрана) */
+/* Переключатель «Куда сегодня?» */
 .screen > div > button {
   background: var(--card) !important;
   border: 1px solid var(--hair) !important;
@@ -296,14 +301,14 @@ body {
   color: var(--ink) !important;
 }
 
-/* Подсказка под переключателем — прижата, не сирота */
+/* Подсказка прижата к карточке */
 .screen > div > div.muted {
   font-size: 11px !important;
   letter-spacing: 0.2px;
-  margin: -2px 0 10px !important;
+  margin: -4px 0 12px !important;
 }
 
-/* ПРЕМИУМ-МОДАЛКИ (PRO и карточка вещи) */
+/* ПРЕМИУМ-МОДАЛКИ */
 div[style*='position: fixed'] > .card {
   border: 1px solid var(--line);
   border-radius: 20px;
