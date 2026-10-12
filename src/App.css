@@ -1,20 +1,21 @@
 :root {
-  --bg-top: #f4f5f9;
-  --bg-bottom: #eceef4;
-  --card: #ffffff;
-  --ink: #0f1222;
-  --ink-soft: #3c4257;
-  --muted: #7c8194;
-  --line: #e4e7ee;
-  --hair: #eef0f5;
-  --accent: #0f1222;
-  --accent-deep: #000000;
-  --success: #16a34a;
-  --danger: #e11d48;
+  --bg-top: #f6f1e8;
+  --bg-bottom: #ede6d9;
+  --card: #fffcf7;
+  --ink: #2b2620;
+  --ink-soft: #55483a;
+  --muted: #94897a;
+  --line: #e4dbc9;
+  --hair: #efe8db;
+  --accent: #a87c4f;
+  --accent-deep: #8f6740;
+  --accent-soft: #ead9c0;
+  --success: #4d7c4a;
+  --danger: #b3403f;
   --radius-card: 18px;
   --radius-btn: 14px;
-  --shadow-card: 0 1px 2px rgba(15, 18, 34, 0.04), 0 10px 28px rgba(15, 18, 34, 0.06);
-  --shadow-btn: 0 1px 2px rgba(15, 18, 34, 0.06);
+  --shadow-card: 0 1px 2px rgba(64, 52, 36, 0.05), 0 10px 28px rgba(64, 52, 36, 0.07);
+  --shadow-btn: 0 1px 2px rgba(64, 52, 36, 0.07);
 }
 
 body {
@@ -23,7 +24,7 @@ body {
 }
 
 ::selection {
-  background: rgba(15, 18, 34, 0.15);
+  background: rgba(168, 124, 79, 0.25);
 }
 
 .phone {
@@ -82,10 +83,11 @@ body {
 }
 
 .screen-title {
-  font-size: 28px;
-  font-weight: 800;
-  letter-spacing: -0.9px;
-  line-height: 1.15;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  line-height: 1.1;
   margin: 6px 0 12px;
   color: var(--ink);
 }
@@ -155,14 +157,21 @@ body {
 }
 
 .action-btn.primary {
-  background: linear-gradient(135deg, #2b2f45 0%, var(--accent-deep) 100%);
+  background: linear-gradient(135deg, #b98a58 0%, var(--accent-deep) 100%);
   border-color: transparent;
   color: #fff;
-  box-shadow: 0 8px 20px rgba(15, 18, 34, 0.28);
+  box-shadow: 0 8px 20px rgba(168, 124, 79, 0.35);
 }
 
 .action-btn.primary:active {
-  box-shadow: 0 3px 8px rgba(15, 18, 34, 0.24);
+  box-shadow: 0 3px 8px rgba(168, 124, 79, 0.3);
+}
+
+/* Сегменты «спереди/сзади», «Манекен/Моё фото»: активный становится коричневым вместо чёрного */
+.action-btn[style*='rgb(17, 17, 17)'] {
+  background: var(--accent) !important;
+  color: #fff !important;
+  border-color: transparent !important;
 }
 
 .card {
@@ -211,8 +220,8 @@ body {
   display: flex;
   background: var(--card);
   border-top: 1px solid var(--line);
-  box-shadow: 0 -6px 20px rgba(15, 18, 34, 0.05);
-  padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+  box-shadow: 0 -6px 20px rgba(64, 52, 36, 0.06);
+  padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
   z-index: 40;
 }
 
@@ -228,21 +237,44 @@ body {
   font-weight: 600;
   letter-spacing: 0.2px;
   color: var(--muted);
-  padding: 4px 0;
+  padding: 6px 0;
+  margin: 2px 0;
+  border-radius: 12px;
   cursor: pointer;
-  transition: color 0.15s ease;
+  transition: color 0.15s ease, background 0.15s ease;
 }
 
 .tab.active {
-  color: var(--ink);
+  color: var(--accent-deep);
   font-weight: 800;
+  background: var(--accent-soft);
 }
 
 .tab-icon {
   font-size: 18px;
+  filter: grayscale(1) sepia(0.35) brightness(0.8);
+  opacity: 0.8;
 }
 
-/* Микро-типографика карточки-переключателя «Куда сегодня?» */
+.tab.active .tab-icon {
+  filter: grayscale(1) sepia(0.6) brightness(0.55);
+  opacity: 1;
+}
+
+/* Карточка-переключатель «Куда сегодня?» в тёплой палитре */
+.screen > button {
+  background: var(--card) !important;
+  border: 1px solid var(--hair) !important;
+}
+
+.screen > button > span:first-child {
+  background: var(--accent-soft) !important;
+}
+
+.screen > button > span:last-child {
+  background: var(--accent) !important;
+}
+
 .screen > button > span:nth-child(2) > span:first-child {
   font-size: 10px !important;
   font-weight: 800 !important;
@@ -258,12 +290,12 @@ body {
   color: var(--ink) !important;
 }
 
-/* ПРЕМИУМ-МОДАЛКИ (PRO-окно и карточка вещи) */
+/* ПРЕМИУМ-МОДАЛКИ (PRO и карточка вещи) */
 div[style*='position: fixed'] > .card {
   border: 1px solid var(--line);
   border-radius: 20px;
   padding: 16px;
-  box-shadow: 0 24px 64px rgba(15, 18, 34, 0.22);
+  box-shadow: 0 24px 64px rgba(64, 52, 36, 0.24);
 }
 
 div[style*='position: fixed'] > .card img {
@@ -297,30 +329,30 @@ div[style*='position: fixed'] > .card .action-btn.primary {
   letter-spacing: -0.2px;
 }
 
-/* ОТКЛИК СЕТКИ И КЛИКАБЕЛЬНЫХ КАРТОЧЕК (шкаф, строки профиля) */
+/* ОТКЛИК КЛИКАБЕЛЬНЫХ КАРТОЧЕК */
 .card[style*='cursor'] {
   transition: transform 0.06s ease, box-shadow 0.15s ease;
 }
 
 .card[style*='cursor']:active {
   transform: scale(0.985);
-  box-shadow: 0 1px 4px rgba(15, 18, 34, 0.08);
+  box-shadow: 0 1px 4px rgba(64, 52, 36, 0.1);
 }
 
-/* СТРЕЛКИ В СТРОКАХ — тихие, но заметные */
+/* СТРЕЛКИ В СТРОКАХ */
 .card.row > span.muted:last-child {
-  color: #c3c8d4;
+  color: #c9bfa9;
   font-weight: 800;
 }
 
 /* ФОТО И АВАТАР */
 .card img {
   border-radius: 10px;
-  box-shadow: 0 2px 6px rgba(15, 18, 34, 0.08);
+  box-shadow: 0 2px 6px rgba(64, 52, 36, 0.1);
 }
 
 .card > .row > div > div:first-child {
-  box-shadow: 0 2px 8px rgba(15, 18, 34, 0.12);
+  box-shadow: 0 2px 8px rgba(64, 52, 36, 0.14);
 }
 
 /* ФОРМЫ И КОНТРОЛЫ */
@@ -337,13 +369,13 @@ select {
 }
 
 input::placeholder {
-  color: #a6abbd;
+  color: #b3a88f;
   font-weight: 500;
 }
 
 input:focus,
 select:focus {
-  border-color: var(--ink) !important;
+  border-color: var(--accent) !important;
   outline: none;
 }
 
@@ -351,7 +383,7 @@ input[type='checkbox'] {
   width: 18px !important;
   height: 18px !important;
   padding: 0 !important;
-  accent-color: var(--ink);
+  accent-color: var(--accent);
   cursor: pointer;
 }
 
@@ -359,7 +391,7 @@ input[type='range'] {
   padding: 0 !important;
   border: none !important;
   background: transparent !important;
-  accent-color: var(--ink);
+  accent-color: var(--accent);
   height: 24px !important;
 }
 
@@ -373,7 +405,7 @@ input[type='file'] {
 button:focus-visible,
 input:focus-visible,
 select:focus-visible {
-  outline: 2px solid var(--ink);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
