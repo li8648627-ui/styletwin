@@ -32,6 +32,28 @@ const EVENT_LABELS: Record<EventId, { ru: string; en: string }> = {
   trip: { ru: 'поездка', en: 'trip' },
 }
 
+const EVENT_ICONS: Record<EventId, string> = {
+  office: '💼',
+  meeting: '🤝',
+  date: '💫',
+  sport: '🏃',
+  walk: '🌳',
+  party: '🎉',
+  theater: '🎭',
+  trip: '✈️',
+}
+
+const EVENT_BG: Record<EventId, string> = {
+  office: '#eef2ff',
+  meeting: '#fef3c7',
+  date: '#fce7f3',
+  sport: '#dcfce7',
+  walk: '#d1fae5',
+  party: '#ffe4e6',
+  theater: '#ede9fe',
+  trip: '#e0f2fe',
+}
+
 const EVENT_REASONS: Record<EventId, { ru: string; en: string }> = {
   office: { ru: 'офисный дресс-код — нейтральная палитра', en: 'office dress code — neutral palette' },
   meeting: { ru: 'встреча — образ держит вид весь день', en: 'meeting — the look stays sharp all day' },
@@ -173,20 +195,68 @@ export function TodayPage({ city, onNavigate }: { city: string; onNavigate: (tab
       {weather && (
         <div className="weather">✳ {formatWeather(weather)} · {city}</div>
       )}
-      <div className="chips" style={{ marginBottom: 8 }}>
-        <button
-          className="chip"
-          style={{ cursor: 'pointer', background: '#111', color: '#fff', border: '1px solid #111', fontWeight: 600 }}
-          onClick={() => {
-            setEvent(EVENT_ORDER[(EVENT_ORDER.indexOf(event) + 1) % EVENT_ORDER.length])
-            setSaved(false)
+      <button
+        onClick={() => {
+          setEvent(EVENT_ORDER[(EVENT_ORDER.indexOf(event) + 1) % EVENT_ORDER.length])
+          setSaved(false)
+        }}
+        style={{
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+          background: '#fff',
+          border: '1px solid #eee',
+          borderRadius: 16,
+          padding: '12px 14px',
+          marginBottom: 6,
+          cursor: 'pointer',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+          textAlign: 'left',
+        }}
+      >
+        <span
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: '50%',
+            background: EVENT_BG[event],
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: 20,
+            flexShrink: 0,
           }}
         >
-          {lang === 'ru' ? 'куда: ' : 'going: '} {lang === 'ru' ? EVENT_LABELS[event].ru : EVENT_LABELS[event].en} ▸
-        </button>
-        <span className="muted" style={{ fontSize: 11 }}>
-          {lang === 'ru' ? 'нажмите, чтобы сменить направление' : 'tap to change destination'}
+          {EVENT_ICONS[event]}
         </span>
+        <span style={{ flex: 1 }}>
+          <span style={{ display: 'block', fontSize: 11, color: 'var(--muted)' }}>
+            {lang === 'ru' ? 'Куда сегодня?' : 'Where today?'}
+          </span>
+          <span style={{ display: 'block', fontSize: 15, fontWeight: 700 }}>
+            {lang === 'ru' ? EVENT_LABELS[event].ru : EVENT_LABELS[event].en}
+          </span>
+        </span>
+        <span
+          style={{
+            width: 32,
+            height: 32,
+            borderRadius: '50%',
+            background: '#111',
+            color: '#fff',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: 14,
+            flexShrink: 0,
+          }}
+        >
+          ▸
+        </span>
+      </button>
+      <div className="muted" style={{ fontSize: 11, marginBottom: 10, textAlign: 'center' }}>
+        {lang === 'ru' ? 'нажмите, чтобы сменить направление' : 'tap to change destination'}
       </div>
       <h1 className="screen-title">{t('today_title')}</h1>
       <div className="actions" style={{ marginBottom: 12 }}>
