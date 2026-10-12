@@ -10,9 +10,7 @@
   --accent: #0f1222;
   --accent-deep: #000000;
   --success: #16a34a;
-  --success-bg: #f0fdf4;
   --danger: #e11d48;
-  --danger-bg: #fff1f2;
   --radius-card: 18px;
   --radius-btn: 14px;
   --shadow-card: 0 1px 2px rgba(15, 18, 34, 0.04), 0 10px 28px rgba(15, 18, 34, 0.06);
@@ -179,32 +177,10 @@ body {
 .card.muted {
   color: var(--muted);
   text-align: center;
-  padding: 18px 14px;
+  padding: 26px 18px;
   box-shadow: none;
   font-weight: 500;
-}
-
-/* Сообщения успеха и ошибки — выразительные стикеры */
-.card.muted:has(span) {
-  text-align: left;
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 14px 16px;
-  border: 1px solid var(--line);
-  background: var(--card);
-  box-shadow: var(--shadow-card);
-}
-
-.card.muted:has(span)::before {
-  content: '';
-  display: block;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: var(--line);
-  flex-shrink: 0;
-  margin-top: 1px;
+  font-size: 13.5px;
 }
 
 .row {
@@ -282,7 +258,72 @@ body {
   color: var(--ink) !important;
 }
 
-/* Формы и контролы */
+/* ПРЕМИУМ-МОДАЛКИ (PRO-окно и карточка вещи) */
+div[style*='position: fixed'] > .card {
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 16px;
+  box-shadow: 0 24px 64px rgba(15, 18, 34, 0.22);
+}
+
+div[style*='position: fixed'] > .card img {
+  border-radius: 12px;
+}
+
+div[style*='position: fixed'] > .card .row strong {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.2px;
+}
+
+div[style*='position: fixed'] > .card table {
+  font-size: 13px;
+}
+
+div[style*='position: fixed'] > .card table td {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--hair);
+}
+
+div[style*='position: fixed'] > .card table tr:last-child td {
+  border-bottom: none;
+}
+
+div[style*='position: fixed'] > .card .action-btn.primary {
+  margin-top: 4px;
+  padding: 15px 10px;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.2px;
+}
+
+/* ОТКЛИК СЕТКИ И КЛИКАБЕЛЬНЫХ КАРТОЧЕК (шкаф, строки профиля) */
+.card[style*='cursor'] {
+  transition: transform 0.06s ease, box-shadow 0.15s ease;
+}
+
+.card[style*='cursor']:active {
+  transform: scale(0.985);
+  box-shadow: 0 1px 4px rgba(15, 18, 34, 0.08);
+}
+
+/* СТРЕЛКИ В СТРОКАХ — тихие, но заметные */
+.card.row > span.muted:last-child {
+  color: #c3c8d4;
+  font-weight: 800;
+}
+
+/* ФОТО И АВАТАР */
+.card img {
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(15, 18, 34, 0.08);
+}
+
+.card > .row > div > div:first-child {
+  box-shadow: 0 2px 8px rgba(15, 18, 34, 0.12);
+}
+
+/* ФОРМЫ И КОНТРОЛЫ */
 input,
 select {
   background: var(--card) !important;
@@ -327,50 +368,6 @@ input[type='file'] {
   border: none !important;
   background: transparent !important;
   font-size: 13px !important;
-}
-
-/* Фото в карточке образа — мягкая тень и скругление */
-.card img {
-  border-radius: 10px;
-  box-shadow: 0 2px 6px rgba(15, 18, 34, 0.08);
-}
-
-/* Аватар в профиле — тень */
-.card > .row > div > div:first-child {
-  box-shadow: 0 2px 8px rgba(15, 18, 34, 0.12);
-}
-
-/* PRO-окно — премиум-стилизация */
-.phone > div[style*='position: fixed'] > .card {
-  border: 1px solid var(--line);
-  box-shadow: 0 20px 60px rgba(15, 18, 34, 0.18);
-  border-radius: 20px;
-}
-
-.phone > div[style*='position: fixed'] > .card > div:first-child {
-  font-size: 20px;
-  letter-spacing: -0.4px;
-}
-
-.phone > div[style*='position: fixed'] > .card table {
-  font-size: 13px;
-}
-
-.phone > div[style*='position: fixed'] > .card table td {
-  padding: 8px 0;
-  border-bottom: 1px solid var(--hair);
-}
-
-.phone > div[style*='position: fixed'] > .card table tr:last-child td {
-  border-bottom: none;
-}
-
-.phone > div[style*='position: fixed'] > .card .action-btn.primary {
-  margin-top: 4px;
-  padding: 15px 10px;
-  font-size: 15px;
-  font-weight: 800;
-  letter-spacing: -0.2px;
 }
 
 button:focus-visible,
