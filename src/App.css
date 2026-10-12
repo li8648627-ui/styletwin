@@ -7,9 +7,8 @@
   --muted: #7c8194;
   --line: #e4e7ee;
   --hair: #eef0f5;
-  --accent: #d43bf0;
-  --accent-deep: #b21bd6;
-  --accent-soft: #fbe6ff;
+  --accent: #0f1222;
+  --accent-deep: #000000;
   --success: #16a34a;
   --danger: #e11d48;
   --radius-card: 18px;
@@ -24,7 +23,7 @@ body {
 }
 
 ::selection {
-  background: rgba(212, 59, 240, 0.22);
+  background: rgba(15, 18, 34, 0.15);
 }
 
 .phone {
@@ -156,14 +155,14 @@ body {
 }
 
 .action-btn.primary {
-  background: linear-gradient(135deg, #e05cff 0%, var(--accent-deep) 100%);
+  background: linear-gradient(135deg, #2b2f45 0%, var(--accent-deep) 100%);
   border-color: transparent;
   color: #fff;
-  box-shadow: 0 8px 20px rgba(212, 59, 240, 0.35);
+  box-shadow: 0 8px 20px rgba(15, 18, 34, 0.28);
 }
 
 .action-btn.primary:active {
-  box-shadow: 0 3px 8px rgba(212, 59, 240, 0.28);
+  box-shadow: 0 3px 8px rgba(15, 18, 34, 0.24);
 }
 
 .card {
@@ -234,7 +233,7 @@ body {
 }
 
 .tab.active {
-  color: var(--accent);
+  color: var(--ink);
   font-weight: 800;
 }
 
@@ -278,7 +277,7 @@ input::placeholder {
 
 input:focus,
 select:focus {
-  border-color: var(--accent) !important;
+  border-color: var(--ink) !important;
   outline: none;
 }
 
@@ -286,7 +285,7 @@ input[type='checkbox'] {
   width: 18px !important;
   height: 18px !important;
   padding: 0 !important;
-  accent-color: var(--accent);
+  accent-color: var(--ink);
   cursor: pointer;
 }
 
@@ -294,7 +293,7 @@ input[type='range'] {
   padding: 0 !important;
   border: none !important;
   background: transparent !important;
-  accent-color: var(--accent);
+  accent-color: var(--ink);
   height: 24px !important;
 }
 
@@ -308,7 +307,7 @@ input[type='file'] {
 button:focus-visible,
 input:focus-visible,
 select:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--ink);
   outline-offset: 2px;
 }
 
