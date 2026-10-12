@@ -78,6 +78,12 @@ body {
   transition: border-color 0.15s ease, color 0.15s ease;
 }
 
+/* Активная пилюля языка (RU/EN) — коричневая обводка вместо чёрной */
+.badge-free[style*='rgb(17, 17, 17)'] {
+  border-color: var(--accent) !important;
+  color: var(--accent-deep) !important;
+}
+
 .screen {
   padding: 4px 20px 104px;
 }
@@ -157,7 +163,7 @@ body {
 }
 
 .action-btn.primary {
-  background: linear-gradient(135deg, #b98a58 0%, var(--accent-deep) 100%);
+  background: linear-gradient(135deg, #c09260 0%, var(--accent-deep) 100%);
   border-color: transparent;
   color: #fff;
   box-shadow: 0 8px 20px rgba(168, 124, 79, 0.35);
@@ -167,7 +173,7 @@ body {
   box-shadow: 0 3px 8px rgba(168, 124, 79, 0.3);
 }
 
-/* Сегменты «спереди/сзади», «Манекен/Моё фото»: активный становится коричневым вместо чёрного */
+/* Сегменты «спереди/сзади», «Манекен/Моё фото»: активный — коричневый */
 .action-btn[style*='rgb(17, 17, 17)'] {
   background: var(--accent) !important;
   color: #fff !important;
@@ -238,7 +244,7 @@ body {
   letter-spacing: 0.2px;
   color: var(--muted);
   padding: 6px 0;
-  margin: 2px 0;
+  margin: 2px;
   border-radius: 12px;
   cursor: pointer;
   transition: color 0.15s ease, background 0.15s ease;
@@ -261,21 +267,21 @@ body {
   opacity: 1;
 }
 
-/* Карточка-переключатель «Куда сегодня?» в тёплой палитре */
-.screen > button {
+/* ПЕРЕЛЮЧАТЕЛЬ «Куда сегодня?» — селекторы теперь долетают (кнопка внутри div экрана) */
+.screen > div > button {
   background: var(--card) !important;
   border: 1px solid var(--hair) !important;
 }
 
-.screen > button > span:first-child {
+.screen > div > button > span:first-child {
   background: var(--accent-soft) !important;
 }
 
-.screen > button > span:last-child {
+.screen > div > button > span:last-child {
   background: var(--accent) !important;
 }
 
-.screen > button > span:nth-child(2) > span:first-child {
+.screen > div > button > span:nth-child(2) > span:first-child {
   font-size: 10px !important;
   font-weight: 800 !important;
   text-transform: uppercase !important;
@@ -283,11 +289,18 @@ body {
   color: var(--muted) !important;
 }
 
-.screen > button > span:nth-child(2) > span:last-child {
+.screen > div > button > span:nth-child(2) > span:last-child {
   font-size: 16px !important;
   font-weight: 800 !important;
   letter-spacing: -0.2px !important;
   color: var(--ink) !important;
+}
+
+/* Подсказка под переключателем — прижата, не сирота */
+.screen > div > div.muted {
+  font-size: 11px !important;
+  letter-spacing: 0.2px;
+  margin: -2px 0 10px !important;
 }
 
 /* ПРЕМИУМ-МОДАЛКИ (PRO и карточка вещи) */
