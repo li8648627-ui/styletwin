@@ -1,22 +1,37 @@
 :root {
-  --bg: #eef0f4;
+  --bg-top: #f4f5f9;
+  --bg-bottom: #eceef4;
   --card: #ffffff;
-  --ink: #111318;
-  --muted: #8b8f98;
-  --line: #e6e8ee;
+  --ink: #0f1222;
+  --ink-soft: #3c4257;
+  --muted: #7c8194;
+  --line: #e4e7ee;
+  --hair: #eef0f5;
   --accent: #d43bf0;
-  --black-seg: #111318;
+  --accent-deep: #b21bd6;
+  --accent-soft: #fbe6ff;
+  --success: #16a34a;
+  --danger: #e11d48;
+  --radius-card: 18px;
+  --radius-btn: 14px;
+  --shadow-card: 0 1px 2px rgba(15, 18, 34, 0.04), 0 10px 28px rgba(15, 18, 34, 0.06);
+  --shadow-btn: 0 1px 2px rgba(15, 18, 34, 0.06);
 }
 
 body {
-  background: var(--bg);
+  background: linear-gradient(180deg, var(--bg-top) 0%, var(--bg-bottom) 100%);
+  background-attachment: fixed;
+}
+
+::selection {
+  background: rgba(212, 59, 240, 0.22);
 }
 
 .phone {
   max-width: 480px;
   margin: 0 auto;
   min-height: 100vh;
-  background: var(--bg);
+  background: transparent;
   position: relative;
 }
 
@@ -26,8 +41,9 @@ body {
   align-items: center;
   padding: 10px 20px 4px;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--ink);
+  font-variant-numeric: tabular-nums;
 }
 
 .appbar {
@@ -39,20 +55,27 @@ body {
 
 .brand {
   font-weight: 800;
-  font-size: 19px;
-  letter-spacing: -0.2px;
+  font-size: 20px;
+  letter-spacing: -0.4px;
   color: var(--ink);
+}
+
+.brand sup {
+  font-size: 9px;
+  color: var(--muted);
+  font-weight: 700;
 }
 
 .badge-free {
   font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.4px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
   padding: 5px 10px;
   border: 1px solid var(--line);
   border-radius: 999px;
   color: var(--muted);
   background: var(--card);
+  transition: border-color 0.15s ease, color 0.15s ease;
 }
 
 .screen {
@@ -60,17 +83,21 @@ body {
 }
 
 .screen-title {
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 800;
-  letter-spacing: -0.4px;
+  letter-spacing: -0.9px;
+  line-height: 1.15;
   margin: 6px 0 12px;
   color: var(--ink);
 }
 
 .weather {
   font-size: 13px;
+  font-weight: 600;
   color: var(--muted);
+  letter-spacing: 0.2px;
   margin-bottom: 8px;
+  font-variant-numeric: tabular-nums;
 }
 
 .chips {
@@ -88,7 +115,14 @@ body {
   background: var(--card);
   border: 1px solid var(--line);
   font-size: 12.5px;
-  color: var(--ink);
+  font-weight: 600;
+  color: var(--ink-soft);
+  box-shadow: var(--shadow-btn);
+  transition: transform 0.06s ease;
+}
+
+.chip:active {
+  transform: scale(0.97);
 }
 
 .actions {
@@ -100,15 +134,16 @@ body {
 .action-btn {
   flex: 1;
   padding: 13px 10px;
-  border-radius: 14px;
+  border-radius: var(--radius-btn);
   background: var(--card);
-  border: none;
-  font-weight: 600;
-  font-size: 13.5px;
+  border: 1px solid var(--hair);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: -0.1px;
   color: var(--ink);
   cursor: pointer;
-  box-shadow: 0 1px 2px rgba(16, 17, 24, 0.05);
-  transition: transform 0.06s ease;
+  box-shadow: var(--shadow-btn);
+  transition: transform 0.06s ease, box-shadow 0.15s ease;
 }
 
 .action-btn:active {
@@ -121,22 +156,31 @@ body {
 }
 
 .action-btn.primary {
-  background: var(--accent);
+  background: linear-gradient(135deg, #e05cff 0%, var(--accent-deep) 100%);
+  border-color: transparent;
   color: #fff;
-  box-shadow: 0 4px 12px rgba(212, 59, 240, 0.28);
+  box-shadow: 0 8px 20px rgba(212, 59, 240, 0.35);
+}
+
+.action-btn.primary:active {
+  box-shadow: 0 3px 8px rgba(212, 59, 240, 0.28);
 }
 
 .card {
   background: var(--card);
-  border-radius: 16px;
+  border: 1px solid var(--hair);
+  border-radius: var(--radius-card);
   padding: 14px;
   margin-bottom: 10px;
+  box-shadow: var(--shadow-card);
 }
 
 .card.muted {
   color: var(--muted);
   text-align: center;
   padding: 18px 14px;
+  box-shadow: none;
+  font-weight: 500;
 }
 
 .row {
@@ -146,10 +190,15 @@ body {
   gap: 8px;
 }
 
+.row span {
+  font-variant-numeric: tabular-nums;
+}
+
 .muted {
   color: var(--muted);
   font-size: 13px;
-  line-height: 1.45;
+  font-weight: 500;
+  line-height: 1.5;
 }
 
 .tabbar {
@@ -162,6 +211,7 @@ body {
   display: flex;
   background: var(--card);
   border-top: 1px solid var(--line);
+  box-shadow: 0 -6px 20px rgba(15, 18, 34, 0.05);
   padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
   z-index: 40;
 }
@@ -175,21 +225,40 @@ body {
   align-items: center;
   gap: 2px;
   font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
   color: var(--muted);
   padding: 4px 0;
   cursor: pointer;
+  transition: color 0.15s ease;
 }
 
 .tab.active {
   color: var(--accent);
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .tab-icon {
   font-size: 18px;
 }
 
-/* Формы и контролы в костюме v11 (перекрывают инлайн-стили компонентов) */
+/* Микро-типографика карточки-переключателя «Куда сегодня?» (перекрывает инлайн) */
+.screen > button > span:nth-child(2) > span:first-child {
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.7px !important;
+  color: var(--muted) !important;
+}
+
+.screen > button > span:nth-child(2) > span:last-child {
+  font-size: 16px !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.2px !important;
+  color: var(--ink) !important;
+}
+
+/* Формы и контролы в единой системе */
 input,
 select {
   background: var(--card) !important;
@@ -197,7 +266,14 @@ select {
   border-radius: 12px !important;
   padding: 11px 12px !important;
   font-size: 14px !important;
+  font-weight: 500 !important;
   color: var(--ink) !important;
+  transition: border-color 0.15s ease;
+}
+
+input::placeholder {
+  color: #a6abbd;
+  font-weight: 500;
 }
 
 input:focus,
@@ -234,4 +310,11 @@ input:focus-visible,
 select:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
 }
