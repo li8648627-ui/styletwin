@@ -1,14 +1,13 @@
 :root {
-  --bg-top: #e9ddc6;
-  --bg-bottom: #d8c6a4;
-  --card: #fffdf9;
-  --object: #f6efe1;
-  --dark: #2f2718;
-  --ink: #2a2318;
-  --ink-soft: #4f4433;
-  --muted: #8a7a5c;
-  --line: #cfc0a2;
-  --hair: #e6dcc6;
+  --bg-top: #f7f3ea;
+  --bg-bottom: #efe8d8;
+  --card: #ffffff;
+  --object: #f1ead9;
+  --ink: #241f19;
+  --ink-soft: #4a4034;
+  --muted: #8b7f6a;
+  --line: #e0d6c0;
+  --hair: #ece5d3;
   --accent: #9c6b3c;
   --accent-deep: #7f5530;
   --accent-soft: #ecd9b8;
@@ -16,8 +15,8 @@
   --danger: #b3403f;
   --radius-card: 18px;
   --radius-btn: 14px;
-  --shadow-card: 0 2px 6px rgba(101, 78, 44, 0.1), 0 14px 34px rgba(101, 78, 44, 0.16);
-  --shadow-btn: 0 1px 3px rgba(101, 78, 44, 0.12);
+  --shadow-card: 0 1px 2px rgba(90, 70, 40, 0.06), 0 8px 24px rgba(90, 70, 40, 0.1);
+  --shadow-btn: 0 1px 2px rgba(90, 70, 40, 0.08);
 }
 
 body {
@@ -204,7 +203,7 @@ span.badge-free {
 }
 
 .card .row .action-btn {
-  background: transparent;
+  background: #faf6ec;
   border-color: var(--hair);
   box-shadow: none;
   color: var(--ink-soft);
@@ -221,7 +220,7 @@ span.badge-free {
 }
 
 .card.muted {
-  background: #f3ecdc;
+  background: #f4eee0;
   color: var(--muted);
   text-align: center;
   padding: 26px 18px;
@@ -258,7 +257,7 @@ span.badge-free {
   display: flex;
   background: var(--card);
   border-top: 1px solid var(--line);
-  box-shadow: 0 -8px 24px rgba(101, 78, 44, 0.14);
+  box-shadow: 0 -8px 24px rgba(90, 70, 40, 0.1);
   padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
   z-index: 40;
 }
@@ -290,20 +289,20 @@ span.badge-free {
 
 .tab-icon {
   font-size: 20px;
-  filter: grayscale(1) sepia(0.5) brightness(0.85);
-  opacity: 0.85;
+  filter: sepia(0.3) brightness(0.9);
+  opacity: 0.9;
 }
 
 .tab.active .tab-icon {
-  filter: grayscale(1) sepia(0.6) brightness(0.55);
+  filter: sepia(0.5) brightness(0.6);
   opacity: 1;
 }
 
-/* ПЕРЕЛЮЧАТЕЛЬ «Куда сегодня?» — инвертированный тёмный фокус экрана */
+/* Переключатель «Куда сегодня?» — белая карточка с карамельной стрелкой */
 .screen > div > button {
-  background: var(--dark) !important;
-  border: 1px solid var(--dark) !important;
-  box-shadow: 0 12px 28px rgba(47, 39, 24, 0.35) !important;
+  background: var(--card) !important;
+  border: 1px solid var(--hair) !important;
+  box-shadow: var(--shadow-card) !important;
 }
 
 .screen > div > button > span:first-child {
@@ -319,19 +318,20 @@ span.badge-free {
   font-weight: 800 !important;
   text-transform: uppercase !important;
   letter-spacing: 0.7px !important;
-  color: #c9b891 !important;
+  color: var(--accent-deep) !important;
 }
 
 .screen > div > button > span:nth-child(2) > span:last-child {
   font-size: 16px !important;
   font-weight: 800 !important;
   letter-spacing: -0.2px !important;
-  color: #f6efdf !important;
+  color: var(--ink) !important;
 }
 
 .screen > div > div.muted {
   font-size: 11px !important;
   letter-spacing: 0.2px;
+  color: #6f6450 !important;
   margin: -4px 0 12px !important;
 }
 
@@ -340,7 +340,7 @@ div[style*='position: fixed'] > .card {
   border: 1px solid var(--line);
   border-radius: 20px;
   padding: 16px;
-  box-shadow: 0 24px 64px rgba(70, 54, 30, 0.32);
+  box-shadow: 0 24px 64px rgba(70, 54, 30, 0.28);
 }
 
 div[style*='position: fixed'] > .card img {
@@ -374,34 +374,30 @@ div[style*='position: fixed'] > .card .action-btn.primary {
   letter-spacing: -0.2px;
 }
 
-/* ОТКЛИК КЛИКАБЕЛЬНЫХ КАРТОЧЕК */
 .card[style*='cursor'] {
   transition: transform 0.06s ease, box-shadow 0.15s ease;
 }
 
 .card[style*='cursor']:active {
   transform: scale(0.985);
-  box-shadow: 0 1px 6px rgba(101, 78, 44, 0.18);
+  box-shadow: 0 1px 6px rgba(90, 70, 40, 0.14);
 }
 
-/* СТРЕЛКИ В СТРОКАХ — карамельные */
 .card.row > span.muted:last-child {
   color: var(--accent);
   font-weight: 800;
 }
 
-/* ФОТО: тёплый тон + мягкая тень */
 .card img {
   border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(101, 78, 44, 0.16);
+  box-shadow: 0 2px 8px rgba(90, 70, 40, 0.12);
   filter: sepia(0.12) saturate(0.92);
 }
 
 .card > .row > div > div:first-child {
-  box-shadow: 0 2px 8px rgba(101, 78, 44, 0.2);
+  box-shadow: 0 2px 8px rgba(90, 70, 40, 0.16);
 }
 
-/* ФОРМЫ И КОНТРОЛЫ */
 input,
 select {
   background: var(--card) !important;
