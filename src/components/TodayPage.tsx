@@ -215,13 +215,12 @@ export function TodayPage({ city, onNavigate }: { city: string; onNavigate: (tab
   }
 
   const reasonFor = (): string => {
-    if (!weather) return lang === 'ru' ? 'Смотрим погоду за окном…' : 'Checking the weather…'
     const parts: string[] = []
     parts.push(lang === 'ru' ? EVENT_REASONS[event].ru : EVENT_REASONS[event].en)
-    if (weather.condition === 'rain') parts.push(lang === 'ru' ? 'дождь — закрытая обувь' : 'rain — closed shoes')
-    if (weather.condition === 'snow') parts.push(lang === 'ru' ? 'снег — тёплая обувь' : 'snow — warm shoes')
-    if (weather.temp <= 10) parts.push(lang === 'ru' ? 'холодно — добавьте аксессуары' : 'cold — add accessories')
-    if (weather.temp <= 18 && weather.temp > 10) parts.push(lang === 'ru' ? 'прохладно — возьмите слой сверху' : 'cool — add a top layer')
+    if (weather?.condition === 'rain') parts.push(lang === 'ru' ? 'дождь — закрытая обувь' : 'rain — closed shoes')
+    if (weather?.condition === 'snow') parts.push(lang === 'ru' ? 'снег — тёплая обувь' : 'snow — warm shoes')
+    if ((weather?.temp ?? 99) <= 10) parts.push(lang === 'ru' ? 'холодно — добавьте аксессуары' : 'cold — add accessories')
+    if ((weather?.temp ?? 99) <= 18 && (weather?.temp ?? 99) > 10) parts.push(lang === 'ru' ? 'прохладно — возьмите слой сверху' : 'cool — add a top layer')
     return `${lang === 'ru' ? 'Почему:' : 'Why:'} ${parts.join(', ')}.`
   }
 

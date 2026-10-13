@@ -1,12 +1,14 @@
 :root {
-  --bg-top: #f1e9da;
-  --bg-bottom: #e3d7c0;
-  --card: #fffefb;
+  --bg-top: #e9ddc6;
+  --bg-bottom: #d8c6a4;
+  --card: #fffdf9;
+  --object: #f6efe1;
+  --dark: #2f2718;
   --ink: #2a2318;
   --ink-soft: #4f4433;
-  --muted: #857659;
-  --line: #dcd0b8;
-  --hair: #e9dfcc;
+  --muted: #8a7a5c;
+  --line: #cfc0a2;
+  --hair: #e6dcc6;
   --accent: #9c6b3c;
   --accent-deep: #7f5530;
   --accent-soft: #ecd9b8;
@@ -14,8 +16,8 @@
   --danger: #b3403f;
   --radius-card: 18px;
   --radius-btn: 14px;
-  --shadow-card: 0 2px 6px rgba(122, 95, 58, 0.08), 0 12px 32px rgba(122, 95, 58, 0.12);
-  --shadow-btn: 0 1px 3px rgba(122, 95, 58, 0.1);
+  --shadow-card: 0 2px 6px rgba(101, 78, 44, 0.1), 0 14px 34px rgba(101, 78, 44, 0.16);
+  --shadow-btn: 0 1px 3px rgba(101, 78, 44, 0.12);
 }
 
 body {
@@ -83,11 +85,10 @@ body {
   transition: border-color 0.15s ease, color 0.15s ease;
 }
 
-/* FREE — карамельный намёк на PRO (только span, не трогая RU/EN-кнопки) */
 span.badge-free {
   color: var(--accent-deep);
   border-color: var(--accent-soft);
-  background: #faf5ea;
+  background: var(--object);
 }
 
 .badge-free[style*='rgb(17, 17, 17)'] {
@@ -109,7 +110,6 @@ span.badge-free {
   color: var(--ink);
 }
 
-/* ОДИН PRIMARY НА ЭКРАН: навигационная кнопка после заголовка становится призраком */
 .screen-title + .actions .action-btn.primary {
   background: var(--card);
   color: var(--accent-deep);
@@ -124,7 +124,7 @@ span.badge-free {
 .weather {
   font-size: 13px;
   font-weight: 600;
-  color: var(--muted);
+  color: var(--ink-soft);
   letter-spacing: 0.2px;
   margin-bottom: 8px;
   font-variant-numeric: tabular-nums;
@@ -136,14 +136,13 @@ span.badge-free {
   gap: 6px;
 }
 
-/* Чипы в одной тёплой температуре с палитрой (эмодзи теряют крикливость) */
 .chip {
   display: inline-flex;
   align-items: center;
   gap: 5px;
   padding: 7px 12px;
   border-radius: 999px;
-  background: var(--card);
+  background: var(--object);
   border: 1px solid var(--line);
   font-size: 12.5px;
   font-weight: 600;
@@ -167,7 +166,7 @@ span.badge-free {
   flex: 1;
   padding: 13px 10px;
   border-radius: var(--radius-btn);
-  background: var(--card);
+  background: var(--object);
   border: 1px solid var(--line);
   font-weight: 700;
   font-size: 14px;
@@ -204,7 +203,6 @@ span.badge-free {
   border-color: transparent !important;
 }
 
-/* ТИХИЙ ФИДБЕК: кнопки внутри карточных рядов (лайки) становятся призрачными */
 .card .row .action-btn {
   background: transparent;
   border-color: var(--hair);
@@ -223,7 +221,7 @@ span.badge-free {
 }
 
 .card.muted {
-  background: #faf5ea;
+  background: #f3ecdc;
   color: var(--muted);
   text-align: center;
   padding: 26px 18px;
@@ -260,7 +258,7 @@ span.badge-free {
   display: flex;
   background: var(--card);
   border-top: 1px solid var(--line);
-  box-shadow: 0 -8px 24px rgba(122, 95, 58, 0.12);
+  box-shadow: 0 -8px 24px rgba(101, 78, 44, 0.14);
   padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
   z-index: 40;
 }
@@ -290,7 +288,6 @@ span.badge-free {
   background: var(--accent-soft);
 }
 
-/* ИКОНКИ ТАББАРА: крупнее и светлее — форма читается */
 .tab-icon {
   font-size: 20px;
   filter: grayscale(1) sepia(0.5) brightness(0.85);
@@ -302,11 +299,11 @@ span.badge-free {
   opacity: 1;
 }
 
-/* Переключатель «Куда сегодня?» */
+/* ПЕРЕЛЮЧАТЕЛЬ «Куда сегодня?» — инвертированный тёмный фокус экрана */
 .screen > div > button {
-  background: var(--card) !important;
-  border: 1px solid var(--hair) !important;
-  box-shadow: var(--shadow-card) !important;
+  background: var(--dark) !important;
+  border: 1px solid var(--dark) !important;
+  box-shadow: 0 12px 28px rgba(47, 39, 24, 0.35) !important;
 }
 
 .screen > div > button > span:first-child {
@@ -322,17 +319,16 @@ span.badge-free {
   font-weight: 800 !important;
   text-transform: uppercase !important;
   letter-spacing: 0.7px !important;
-  color: var(--accent-deep) !important;
+  color: #c9b891 !important;
 }
 
 .screen > div > button > span:nth-child(2) > span:last-child {
   font-size: 16px !important;
   font-weight: 800 !important;
   letter-spacing: -0.2px !important;
-  color: var(--ink) !important;
+  color: #f6efdf !important;
 }
 
-/* Подсказка прижата к карточке */
 .screen > div > div.muted {
   font-size: 11px !important;
   letter-spacing: 0.2px;
@@ -344,7 +340,7 @@ div[style*='position: fixed'] > .card {
   border: 1px solid var(--line);
   border-radius: 20px;
   padding: 16px;
-  box-shadow: 0 24px 64px rgba(90, 70, 40, 0.28);
+  box-shadow: 0 24px 64px rgba(70, 54, 30, 0.32);
 }
 
 div[style*='position: fixed'] > .card img {
@@ -385,7 +381,7 @@ div[style*='position: fixed'] > .card .action-btn.primary {
 
 .card[style*='cursor']:active {
   transform: scale(0.985);
-  box-shadow: 0 1px 6px rgba(122, 95, 58, 0.16);
+  box-shadow: 0 1px 6px rgba(101, 78, 44, 0.18);
 }
 
 /* СТРЕЛКИ В СТРОКАХ — карамельные */
@@ -394,15 +390,15 @@ div[style*='position: fixed'] > .card .action-btn.primary {
   font-weight: 800;
 }
 
-/* ФОТО: тёплый тон + мягкая тень (все фото в одной температуре с палитрой) */
+/* ФОТО: тёплый тон + мягкая тень */
 .card img {
   border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(122, 95, 58, 0.14);
+  box-shadow: 0 2px 8px rgba(101, 78, 44, 0.16);
   filter: sepia(0.12) saturate(0.92);
 }
 
 .card > .row > div > div:first-child {
-  box-shadow: 0 2px 8px rgba(122, 95, 58, 0.18);
+  box-shadow: 0 2px 8px rgba(101, 78, 44, 0.2);
 }
 
 /* ФОРМЫ И КОНТРОЛЫ */
