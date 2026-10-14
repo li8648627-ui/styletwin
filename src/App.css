@@ -351,6 +351,11 @@ body {
 
 .tab-icon {
   font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 22px;
+
 }
 
 /* Переключатель направления — пилюля-чип прототипа */

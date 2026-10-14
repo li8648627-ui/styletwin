@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, type ReactNode } from 'react'
 import './App.css'
 import { useLang } from './i18n'
 import { supabase } from './lib/supabase'
@@ -10,13 +10,84 @@ import { OnboardingModal } from './components/OnboardingModal'
 
 type Tab = 'today' | 'wardrobe' | 'tryon' | 'looks' | 'profile'
 
-const TABS: { id: Tab; ru: string; en: string; icon: string }[] = [
-  { id: 'today', ru: 'Сегодня', en: 'Today', icon: '🌤' },
-  { id: 'wardrobe', ru: 'Шкаф', en: 'Wardrobe', icon: '🚪' },
-  { id: 'tryon', ru: 'Примерка', en: 'Try-On', icon: '👗' },
-  { id: 'looks', ru: 'Образы', en: 'Looks', icon: '✨' },
-  { id: 'profile', ru: 'Профиль', en: 'Profile', icon: '👤' },
+const iconProps = {
+  width: 20,
+  height: 20,
+  viewBox: '0 0 24 24',
+  fill: 'none',
+  stroke: 'currentColor',
+  strokeWidth: 1.6,
+  strokeLinecap: 'round' as const,
+  strokeLinejoin: 'round' as const,
+}
+
+const TABS: { id: Tab; ru: string; en: string; icon: ReactNode }[] = [
+  {
+    id: 'today',
+    ru: 'Сегодня',
+    en: 'Today',
+    icon: (
+      <svg {...iconProps}>
+        <circle cx="12" cy="12" r="3.6" />
+        <path d="M12 3v2.2M12 18.8V21M3 12h2.2M18.8 12H21M5.6 5.6l1.6 1.6M16.8 16.8l1.6 1.6M18.4 5.6l-1.6 1.6M7.2 16.8l-1.6 1.6" />
+      </svg>
+    ),
+  },
+  {
+    id: 'wardrobe',
+    ru: 'Шкаф',
+    en: 'Wardrobe',
+    icon: (
+      <svg {...iconProps}>
+        <path d="M12 8.2a2.3 2.3 0 1 0-2.3-2.3" />
+        <path d="M12 8.2 20 13.6a1 1 0 0 1-.6 1.8H4.6a1 1 0 0 1-.6-1.8L12 8.2Z" />
+      </svg>
+    ),
+  },
+  {
+    id: 'tryon',
+    ru: 'Примерка',
+    en: 'Try-On',
+    icon: (
+      <svg {...iconProps}>
+        <path d="M12 3.5l1.9 5.6 5.6 1.9-5.6 1.9L12 18.5l-1.9-5.6-5.6-1.9 5.6-1.9L12 3.5Z" />
+      </svg>
+    ),
+  },
+  {
+    id: 'looks',
+    ru: 'Образы',
+    en: 'Looks',
+    icon: (
+      <svg {...iconProps}>
+        <rect x="4" y="4" width="7" height="7" rx="1.5" />
+        <rect x="13" y="4" width="7" height="7" rx="1.5" />
+        <rect x="4" y="13" width="7" height="7" rx="1.5" />
+        <rect x="13" y="13" width="7" height="7" rx="1.5" />
+      </svg>
+    ),
+  },
+  {
+    id: 'profile',
+    ru: 'Профиль',
+    en: 'Profile',
+    icon: (
+      <svg {...iconProps}>
+        <circle cx="12" cy="8" r="3.4" />
+        <path d="M5 19.5c1.6-3.8 4.6-5.3 7-5.3s5.4 1.5 7 5.3" />
+      </svg>
+    ),
+  },
 ]
+
+function Brand() {
+  return (
+    <span className="brand">
+      Style<span style={{ color: 'var(--accent)' }}>Twin</span>
+      <sup>®</sup>
+    </span>
+  )
+}
 
 function AuthScreen({ onDone }: { onDone: () => void }) {
   const { lang } = useLang()
@@ -52,7 +123,7 @@ function AuthScreen({ onDone }: { onDone: () => void }) {
         <span>📶</span>
       </div>
       <div className="appbar">
-        <span className="brand">Style<sup>®</sup>Twin</span>
+        <Brand />
         <span className="badge-free">FREE</span>
       </div>
       <div className="screen">
@@ -159,7 +230,7 @@ export default function App() {
         <span>📶</span>
       </div>
       <div className="appbar">
-        <span className="brand">Style<sup>®</sup>Twin</span>
+        <Brand />
         <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
           <span className="badge-free">FREE</span>
           <button
