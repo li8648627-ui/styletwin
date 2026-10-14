@@ -1,22 +1,22 @@
 :root {
-  --bg-top: #f7f3ea;
-  --bg-bottom: #efe8d8;
+  --bg-top: #f2f5f2;
+  --bg-bottom: #e7ede7;
   --card: #ffffff;
-  --object: #f1ead9;
-  --ink: #241f19;
-  --ink-soft: #4a4034;
-  --muted: #8b7f6a;
-  --line: #e0d6c0;
-  --hair: #ece5d3;
-  --accent: #9c6b3c;
-  --accent-deep: #7f5530;
-  --accent-soft: #ecd9b8;
-  --success: #4d7c4a;
-  --danger: #b3403f;
+  --object: #edf2ed;
+  --ink: #16211b;
+  --ink-soft: #3d4a42;
+  --muted: #75837a;
+  --line: #dbe5dd;
+  --hair: #e8efe9;
+  --accent: #0e5c43;
+  --accent-deep: #0a4a36;
+  --accent-soft: #dceadf;
+  --success: #16a34a;
+  --danger: #e11d48;
   --radius-card: 18px;
   --radius-btn: 14px;
-  --shadow-card: 0 1px 2px rgba(90, 70, 40, 0.06), 0 8px 24px rgba(90, 70, 40, 0.1);
-  --shadow-btn: 0 1px 2px rgba(90, 70, 40, 0.08);
+  --shadow-card: 0 1px 2px rgba(14, 92, 67, 0.05), 0 10px 28px rgba(14, 92, 67, 0.1);
+  --shadow-btn: 0 1px 2px rgba(14, 92, 67, 0.08);
 }
 
 body {
@@ -25,7 +25,7 @@ body {
 }
 
 ::selection {
-  background: rgba(156, 107, 60, 0.28);
+  background: rgba(14, 92, 67, 0.2);
 }
 
 .phone {
@@ -40,7 +40,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 20px 4px;
+  padding: 10px 22px 4px;
   font-size: 12px;
   font-weight: 700;
   color: var(--ink);
@@ -56,7 +56,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 6px 20px 12px;
+  padding: 6px 22px 14px;
 }
 
 .brand {
@@ -96,19 +96,31 @@ span.badge-free {
 }
 
 .screen {
-  padding: 4px 20px 104px;
+  padding: 4px 22px 108px;
 }
 
+/* EDITORIAL: заголовок экрана с изумрудной линейкой-подписью */
 .screen-title {
   font-family: 'Playfair Display', Georgia, serif;
-  font-size: 30px;
+  font-size: 32px;
   font-weight: 700;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.6px;
   line-height: 1.1;
-  margin: 6px 0 12px;
+  margin: 6px 0 14px;
   color: var(--ink);
 }
 
+.screen-title::after {
+  content: '';
+  display: block;
+  width: 44px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--accent);
+  margin-top: 8px;
+}
+
+/* ОДНА PRIMARY НА ЭКРАН: навигация после заголовка — изумрудный контур */
 .screen-title + .actions .action-btn.primary {
   background: var(--card);
   color: var(--accent-deep);
@@ -147,7 +159,6 @@ span.badge-free {
   font-weight: 600;
   color: var(--ink-soft);
   box-shadow: var(--shadow-btn);
-  filter: sepia(0.35) saturate(0.75);
   transition: transform 0.06s ease;
 }
 
@@ -158,7 +169,7 @@ span.badge-free {
 .actions {
   display: flex;
   gap: 8px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .action-btn {
@@ -186,14 +197,14 @@ span.badge-free {
 }
 
 .action-btn.primary {
-  background: linear-gradient(135deg, #b98a58 0%, var(--accent-deep) 100%);
+  background: linear-gradient(135deg, #17795a 0%, var(--accent-deep) 100%);
   border-color: transparent;
   color: #fff;
-  box-shadow: 0 8px 22px rgba(156, 107, 60, 0.4);
+  box-shadow: 0 8px 22px rgba(14, 92, 67, 0.35);
 }
 
 .action-btn.primary:active {
-  box-shadow: 0 3px 10px rgba(156, 107, 60, 0.34);
+  box-shadow: 0 3px 10px rgba(14, 92, 67, 0.3);
 }
 
 .action-btn[style*='rgb(17, 17, 17)'] {
@@ -202,8 +213,9 @@ span.badge-free {
   border-color: transparent !important;
 }
 
+/* ТИХИЙ ФИДБЕК: лайки внутри карточки — мятный призрак */
 .card .row .action-btn {
-  background: #faf6ec;
+  background: #f6faf7;
   border-color: var(--hair);
   box-shadow: none;
   color: var(--ink-soft);
@@ -214,19 +226,43 @@ span.badge-free {
   background: var(--card);
   border: 1px solid var(--hair);
   border-radius: var(--radius-card);
-  padding: 14px;
-  margin-bottom: 10px;
+  padding: 16px;
+  margin-bottom: 12px;
   box-shadow: var(--shadow-card);
 }
 
 .card.muted {
-  background: #f4eee0;
+  background: #f3f7f3;
   color: var(--muted);
   text-align: center;
   padding: 26px 18px;
   box-shadow: none;
   font-weight: 500;
   font-size: 13.5px;
+}
+
+/* EDITORIAL: карточка образа = обложка номера */
+.screen > div > .card:first-of-type {
+  padding: 18px;
+}
+
+.screen > div > .card:first-of-type > div:first-child {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  margin-bottom: 10px;
+}
+
+.screen > div > .card:first-of-type > div:first-child::before {
+  content: '✳ LOOK OF THE DAY';
+  display: block;
+  font-family: 'Manrope', sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+  color: var(--accent);
+  margin-bottom: 4px;
 }
 
 .row {
@@ -244,7 +280,7 @@ span.badge-free {
   color: var(--muted);
   font-size: 13px;
   font-weight: 500;
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
 .tabbar {
@@ -257,7 +293,7 @@ span.badge-free {
   display: flex;
   background: var(--card);
   border-top: 1px solid var(--line);
-  box-shadow: 0 -8px 24px rgba(90, 70, 40, 0.1);
+  box-shadow: 0 -8px 24px rgba(14, 92, 67, 0.08);
   padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
   z-index: 40;
 }
@@ -289,16 +325,9 @@ span.badge-free {
 
 .tab-icon {
   font-size: 20px;
-  filter: sepia(0.3) brightness(0.9);
-  opacity: 0.9;
 }
 
-.tab.active .tab-icon {
-  filter: sepia(0.5) brightness(0.6);
-  opacity: 1;
-}
-
-/* Переключатель «Куда сегодня?» — белая карточка с карамельной стрелкой */
+/* Переключатель «Куда сегодня?» — белая карточка с изумрудной стрелкой */
 .screen > div > button {
   background: var(--card) !important;
   border: 1px solid var(--hair) !important;
@@ -317,7 +346,7 @@ span.badge-free {
   font-size: 10px !important;
   font-weight: 800 !important;
   text-transform: uppercase !important;
-  letter-spacing: 0.7px !important;
+  letter-spacing: 0.9px !important;
   color: var(--accent-deep) !important;
 }
 
@@ -331,7 +360,7 @@ span.badge-free {
 .screen > div > div.muted {
   font-size: 11px !important;
   letter-spacing: 0.2px;
-  color: #6f6450 !important;
+  color: #5c6b62 !important;
   margin: -4px 0 12px !important;
 }
 
@@ -340,7 +369,7 @@ div[style*='position: fixed'] > .card {
   border: 1px solid var(--line);
   border-radius: 20px;
   padding: 16px;
-  box-shadow: 0 24px 64px rgba(70, 54, 30, 0.28);
+  box-shadow: 0 24px 64px rgba(10, 40, 30, 0.28);
 }
 
 div[style*='position: fixed'] > .card img {
@@ -380,7 +409,7 @@ div[style*='position: fixed'] > .card .action-btn.primary {
 
 .card[style*='cursor']:active {
   transform: scale(0.985);
-  box-shadow: 0 1px 6px rgba(90, 70, 40, 0.14);
+  box-shadow: 0 1px 6px rgba(14, 92, 67, 0.14);
 }
 
 .card.row > span.muted:last-child {
@@ -390,12 +419,11 @@ div[style*='position: fixed'] > .card .action-btn.primary {
 
 .card img {
   border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(90, 70, 40, 0.12);
-  filter: sepia(0.12) saturate(0.92);
+  box-shadow: 0 2px 8px rgba(14, 92, 67, 0.12);
 }
 
 .card > .row > div > div:first-child {
-  box-shadow: 0 2px 8px rgba(90, 70, 40, 0.16);
+  box-shadow: 0 2px 8px rgba(14, 92, 67, 0.16);
 }
 
 input,
@@ -411,7 +439,7 @@ select {
 }
 
 input::placeholder {
-  color: #a89778;
+  color: #93a29a;
   font-weight: 500;
 }
 
