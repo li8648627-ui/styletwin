@@ -32,28 +32,6 @@ const EVENT_LABELS: Record<EventId, { ru: string; en: string }> = {
   trip: { ru: 'поездка', en: 'trip' },
 }
 
-const EVENT_ICONS: Record<EventId, string> = {
-  office: '💼',
-  meeting: '🤝',
-  date: '💫',
-  sport: '🏃',
-  walk: '🌳',
-  party: '🎉',
-  theater: '🎭',
-  trip: '✈️',
-}
-
-const EVENT_BG: Record<EventId, string> = {
-  office: '#eef2ff',
-  meeting: '#fef3c7',
-  date: '#fce7f3',
-  sport: '#dcfce7',
-  walk: '#d1fae5',
-  party: '#ffe4e6',
-  theater: '#ede9fe',
-  trip: '#e0f2fe',
-}
-
 const EVENT_REASONS: Record<EventId, { ru: string; en: string }> = {
   office: { ru: 'офисный дресс-код — нейтральная палитра', en: 'office dress code — neutral palette' },
   meeting: { ru: 'встреча — образ держит вид весь день', en: 'meeting — the look stays sharp all day' },
@@ -173,9 +151,9 @@ export function TodayPage({ city, onNavigate }: { city: string; onNavigate: (tab
   }, [city, lang])
 
   const outfit = weather ? pickOutfit(items, seed, weather, event, prefs) : []
+  const completeness = Math.round((outfit.length / 5) * 100)
 
   const vote = async (delta: 1 | -1) => {
-    setMessage('')
     try {
       const { data: userData, error: userError } = await supabase.auth.getUser()
       if (userError || !userData.user) throw userError
@@ -200,15 +178,6 @@ export function TodayPage({ city, onNavigate }: { city: string; onNavigate: (tab
         map[r.item_id] = r.score
       })
       setPrefs(map)
-      setMessage(
-        delta === 1
-          ? lang === 'ru'
-            ? '✅ Стилист запомнил: вам нравится этот образ!'
-            : '✅ Stylist remembered: you like this look!'
-          : lang === 'ru'
-            ? '👎 Поняла: такие сочетания буду предлагать реже.'
-            : '👎 Got it: I will suggest such combos less often.'
-      )
     } catch (err: any) {
       setMessage(`❌ ${err.message}`)
     }
@@ -224,8 +193,9 @@ export function TodayPage({ city, onNavigate }: { city: string; onNavigate: (tab
     return `${lang === 'ru' ? 'Почему:' : 'Why:'} ${parts.join(', ')}.`
   }
 
-  const saveLook = async () => {
+  const wear = async () => {
     setMessage('')
+    await vote(1)
     try {
       const { data: userData, error: userError } = await supabase.auth.getUser()
       if (userError || !userData.user) throw userError
@@ -244,122 +214,173 @@ export function TodayPage({ city, onNavigate }: { city: string; onNavigate: (tab
     }
   }
 
+  const dislike = async () => {
+    setMessage('')
+    await vote(-1)
+    setSeed(seed + 1)
+    setSaved(false)
+    setMessage(lang === 'ru' ? '👎 Поняла: покажу другой вариант.' : "👎 Got it: showing another option.")
+  }
+
+  const shareLook = async () => {
+    const eventText = lang === 'ru' ? EVENT_LABELS[event].ru : EVENT_LABELS[event].en
+    const weatherText = weather ? `${weather.temp}° ${weather.description}` : ''
+    const itemsText = outfit.map((i) => i.name).join(', ')
+    const reason = reasonFor().replace(lang === 'ru' ? 'Почему: ' : 'Why: ', '')
+    const text =
+      lang === 'ru'
+        ? `✳ Мой образ в StyleTwin\n\nКуда: ${eventText}\nПогода: ${weatherText}\nВещи: ${itemsText}\n\n${reason}\n\nПопробуйте StyleTwin — AI-стилист, который учится на вашем вкусе.`
+        : `✳ My look in StyleTwin\n\nWhere: ${eventText}\nWeather: ${weatherText}\nItems: ${itemsText}\n\n${reason}\n\nTry StyleTwin — AI stylist that learns your taste.`
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: 'StyleTwin', text })
+      } else {
+        await navigator.clipboard.writeText(text)
+        setMessage(
+          lang === 'ru'
+            ? '✅ Образ скопирован — можно вставить в любой чат!'
+            : '✅ Look copied — paste it anywhere!'
+        )
+      }
+    } catch (err: any) {
+      if (err.name !== 'AbortError') setMessage(`❌ ${err.message}`)
+    }
+  }
+
   if (loading) return <div className="card muted">{t('today_stylist')}</div>
-  if (items.length === 0) return <div className="card muted">{t('today_empty')}</div>
+
+  if (items.length === 0)
+    return (
+      <div>
+        <h1 className="screen-title">{t('today_title')}</h1>
+        <div className="card" style={{ textAlign: 'center', padding: '32px 20px' }}>
+          <div style={{ fontSize: 48, marginBottom: 12 }}>🧺</div>
+          <div
+            style={{
+              fontFamily: "'Playfair Display', Georgia, serif",
+              fontSize: 20,
+              fontWeight: 700,
+              letterSpacing: -0.3,
+              marginBottom: 8,
+              color: 'var(--ink)',
+            }}
+          >
+            {lang === 'ru' ? 'Шкаф пока пуст' : 'Wardrobe is empty'}
+          </div>
+          <div className="muted" style={{ marginBottom: 16 }}>
+            {lang === 'ru'
+              ? 'Загрузите первую вещь — AI вырежет фон за секунду.'
+              : 'Upload your first item — AI will remove the background in seconds.'}
+          </div>
+          <button
+            className="action-btn primary"
+            style={{ width: '100%' }}
+            onClick={() => onNavigate('wardrobe')}
+          >
+            📥 {lang === 'ru' ? 'Загрузить первую вещь' : 'Upload first item'}
+          </button>
+        </div>
+      </div>
+    )
 
   return (
     <div>
-      {weather && (
-        <div className="weather">✳ {formatWeather(weather)} · {city}</div>
-      )}
-      <button
-        onClick={() => {
-          setEvent(EVENT_ORDER[(EVENT_ORDER.indexOf(event) + 1) % EVENT_ORDER.length])
-          setSaved(false)
-        }}
-        style={{
-          width: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 12,
-          background: '#fff',
-          border: '1px solid #eee',
-          borderRadius: 16,
-          padding: '12px 14px',
-          marginBottom: 6,
-          cursor: 'pointer',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-          textAlign: 'left',
-        }}
-      >
-        <span
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: '50%',
-            background: EVENT_BG[event],
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: 20,
-            flexShrink: 0,
-          }}
-        >
-          {EVENT_ICONS[event]}
-        </span>
-        <span style={{ flex: 1 }}>
-          <span style={{ display: 'block', fontSize: 11, color: 'var(--muted)' }}>
-            {lang === 'ru' ? 'Куда сегодня?' : 'Where today?'}
-          </span>
-          <span style={{ display: 'block', fontSize: 15, fontWeight: 700 }}>
-            {lang === 'ru' ? EVENT_LABELS[event].ru : EVENT_LABELS[event].en}
-          </span>
-        </span>
-        <span
-          style={{
-            width: 32,
-            height: 32,
-            borderRadius: '50%',
-            background: '#111',
-            color: '#fff',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: 14,
-            flexShrink: 0,
-          }}
-        >
-          ▸
-        </span>
-      </button>
-      <div className="muted" style={{ fontSize: 11, marginBottom: 10, textAlign: 'center' }}>
-        {lang === 'ru' ? 'нажмите, чтобы сменить направление' : 'tap to change destination'}
-      </div>
-      <h1 className="screen-title">{t('today_title')}</h1>
-      <div className="actions" style={{ marginBottom: 12 }}>
-        <button className="action-btn primary" onClick={() => onNavigate('tryon')}>{t('btn_tryon')}</button>
-        <button className="action-btn" onClick={() => onNavigate('wardrobe')}>{t('btn_wardrobe')}</button>
-        <button className="action-btn" onClick={() => onNavigate('looks')}>{t('btn_looks')}</button>
-      </div>
-      <div className="card">
-        <div style={{ fontWeight: 700, marginBottom: 8 }}>{t('today_look')}</div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
-          {outfit.map((it) => (
-            <span key={it.id} className="chip">
-              {CATEGORY_ICON[it.category] ?? '🧺'} {it.name}
-            </span>
-          ))}
-        </div>
-        {outfit.some((it) => it.image_url) && (
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
-            {outfit
-              .filter((it) => it.image_url)
-              .map((it) => (
-                <img key={it.id} src={it.image_url!} alt={it.name} style={{ width: 64, height: 64, objectFit: 'cover', borderRadius: 8 }} />
-              ))}
-          </div>
-        )}
-        <div className="muted">{reasonFor()}</div>
-        <div className="row" style={{ marginTop: 10 }}>
-          <button className="action-btn" onClick={() => vote(1)}>👍 {lang === 'ru' ? 'Нравится' : 'Like'}</button>
-          <button className="action-btn" onClick={() => vote(-1)}>👎 {lang === 'ru' ? 'Не моё' : 'Not mine'}</button>
-        </div>
-      </div>
-      <div className="actions">
-        <button className="action-btn primary" onClick={saveLook} disabled={saved}>
-          {saved ? t('today_taken') : t('today_take')}
-        </button>
+      <div className="chips" style={{ marginBottom: 10 }}>
+        {weather && <span className="weather-pill">✳ {formatWeather(weather)}</span>}
         <button
-          className="action-btn"
+          className="chip"
+          style={{ cursor: 'pointer' }}
           onClick={() => {
-            setSeed(seed + 1)
+            setEvent(EVENT_ORDER[(EVENT_ORDER.indexOf(event) + 1) % EVENT_ORDER.length])
             setSaved(false)
           }}
         >
-          {t('today_other')}
+          {lang === 'ru' ? EVENT_LABELS[event].ru : EVENT_LABELS[event].en} ▸
+        </button>
+        <span className="chip">{lang === 'ru' ? 'встреча 14:00' : 'meeting 2:00 PM'}</span>
+      </div>
+      <h1 className="screen-title">{t('today_title')}</h1>
+
+      <div className="card">
+        <div className="row" style={{ marginBottom: 12 }}>
+          <span style={{ fontWeight: 700 }}>{t('today_look')}</span>
+          <span
+            style={{
+              width: 52,
+              height: 52,
+              borderRadius: '50%',
+              background: `conic-gradient(var(--accent) ${completeness}%, #ece4d4 0)`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            <span style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--card)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--mono)', fontSize: 10, fontWeight: 700, color: 'var(--accent-deep)' }}>
+              {outfit.length}/5
+            </span>
+          </span>
+        </div>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+          {outfit.slice(0, 3).map((it) => (
+            <div key={it.id} className="tile" style={{ flex: 1, height: 110 }}>
+              {it.image_url ? (
+                <img src={it.image_url} alt={it.name} />
+              ) : (
+                <span style={{ fontSize: 40 }}>{CATEGORY_ICON[it.category] ?? '🧺'}</span>
+              )}
+            </div>
+          ))}
+        </div>
+        <div className="actions" style={{ marginBottom: 8 }}>
+          <button className="action-btn primary" onClick={wear} disabled={saved}>
+            ✳ {saved ? t('today_taken') : lang === 'ru' ? 'Надеть это' : 'Wear this'}
+          </button>
+          <button className="action-btn" onClick={dislike}>{lang === 'ru' ? 'Не нравится' : "Don't like"}</button>
+        </div>
+        <div className="muted mono" style={{ fontSize: 11 }}>{reasonFor()}</div>
+      </div>
+
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+        <button className="nav-tile" onClick={() => onNavigate('tryon')}>
+          <span className="nav-tile-icon">✳</span>
+          <span className="nav-tile-label">{lang === 'ru' ? 'AI-примерка' : 'AI try-on'}</span>
+        </button>
+        <button className="nav-tile" onClick={() => onNavigate('wardrobe')}>
+          <span className="nav-tile-icon">＋</span>
+          <span className="nav-tile-label">{lang === 'ru' ? 'Гардероб' : 'Wardrobe'}</span>
+        </button>
+        <button className="nav-tile" onClick={() => onNavigate('looks')}>
+          <span className="nav-tile-icon">❐</span>
+          <span className="nav-tile-label">{lang === 'ru' ? 'Мои образы' : 'My looks'}</span>
         </button>
       </div>
-      {message && <div className="card muted">{message}</div>}
+
+      <div className="row" style={{ marginBottom: 10 }}>
+        <span className="section-title">{lang === 'ru' ? 'Мой гардероб' : 'My wardrobe'}</span>
+        <button className="section-link" style={{ background: 'none', border: 'none', cursor: 'pointer' }} onClick={() => onNavigate('wardrobe')}>
+          {lang === 'ru' ? `Все ${items.length} →` : `All ${items.length} →`}
+        </button>
+      </div>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+        {items.slice(0, 3).map((it) => (
+          <div key={it.id} className="tile" style={{ flex: 1, height: 120, cursor: 'pointer' }} onClick={() => onNavigate('wardrobe')}>
+            {it.image_url ? (
+              <img src={it.image_url} alt={it.name} />
+            ) : (
+              <span style={{ fontSize: 40 }}>{CATEGORY_ICON[it.category] ?? '🧺'}</span>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <div className="actions">
+        <button className="action-btn" onClick={shareLook}>
+          🔗 {lang === 'ru' ? 'Поделиться' : 'Share'}
+        </button>
+      </div>
+
+      {message && <div className="card muted" style={{ marginTop: 12 }}>{message}</div>}
     </div>
   )
 }

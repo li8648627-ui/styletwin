@@ -1,22 +1,24 @@
 :root {
-  --bg-top: #f0f1f6;
-  --bg-bottom: #e9ebf1;
+  --bg-top: #f7f4ee;
+  --bg-bottom: #efe9dd;
   --card: #ffffff;
-  --object: #f6f7fa;
-  --ink: #111318;
-  --ink-soft: #3c4250;
-  --muted: #8b8f98;
-  --line: #e6e8ee;
-  --hair: #eef0f4;
-  --accent: #d43bf0;
-  --accent-deep: #b21bd6;
-  --accent-soft: #fbe6ff;
-  --success: #16a34a;
-  --danger: #e11d48;
-  --radius-card: 16px;
+  --tile: #efe8db;
+  --object: #f6f2e9;
+  --ink: #2b2620;
+  --ink-soft: #55483a;
+  --muted: #9a8f7d;
+  --line: #e6ddcb;
+  --hair: #eee7d9;
+  --accent: #a97e4f;
+  --accent-deep: #8f6740;
+  --accent-soft: #e8dcc8;
+  --success: #4d7c4a;
+  --danger: #b3403f;
+  --radius-card: 18px;
   --radius-btn: 14px;
-  --shadow-card: 0 1px 2px rgba(17, 19, 24, 0.04), 0 8px 24px rgba(17, 19, 24, 0.06);
-  --shadow-btn: 0 1px 2px rgba(17, 19, 24, 0.06);
+  --shadow-card: 0 1px 2px rgba(101, 78, 44, 0.05), 0 10px 26px rgba(101, 78, 44, 0.08);
+  --shadow-btn: 0 1px 2px rgba(101, 78, 44, 0.08);
+  --mono: 'JetBrains Mono', monospace;
 }
 
 body {
@@ -25,7 +27,7 @@ body {
 }
 
 ::selection {
-  background: rgba(212, 59, 240, 0.2);
+  background: rgba(169, 126, 79, 0.25);
 }
 
 .phone {
@@ -41,10 +43,10 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 10px 20px 4px;
-  font-size: 12px;
+  font-family: var(--mono);
+  font-size: 11px;
   font-weight: 700;
   color: var(--ink);
-  font-variant-numeric: tabular-nums;
 }
 
 .statusbar span:last-child {
@@ -73,8 +75,9 @@ body {
 }
 
 .badge-free {
+  font-family: var(--mono);
   font-size: 10px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.6px;
   padding: 5px 10px;
   border: 1px solid var(--line);
@@ -85,8 +88,8 @@ body {
 }
 
 .badge-free[style*='rgb(17, 17, 17)'] {
-  border-color: var(--ink) !important;
-  color: var(--ink) !important;
+  border-color: var(--accent) !important;
+  color: var(--accent-deep) !important;
 }
 
 .screen {
@@ -94,51 +97,62 @@ body {
 }
 
 .screen-title {
-  font-size: 28px;
-  font-weight: 800;
-  letter-spacing: -0.8px;
-  line-height: 1.15;
-  margin: 6px 0 12px;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+  margin: 8px 0 14px;
   color: var(--ink);
 }
 
-/* ОДНА PRIMARY НА ЭКРАН: навигация после заголовка — фуксиевый контур */
-.screen-title + .actions .action-btn.primary {
-  background: var(--card);
+.section-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: var(--ink);
+}
+
+.section-link {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
   color: var(--accent-deep);
-  border: 1px solid var(--accent);
-  box-shadow: var(--shadow-btn);
 }
 
-.screen-title + .actions .action-btn.primary:active {
-  box-shadow: none;
-}
-
-.weather {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--muted);
-  letter-spacing: 0.2px;
-  margin-bottom: 8px;
-  font-variant-numeric: tabular-nums;
+/* Погода-пилюля прототипа */
+.weather-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--accent-soft);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink-soft);
 }
 
 .chips {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+  align-items: center;
 }
 
 .chip {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 7px 12px;
+  padding: 6px 12px;
   border-radius: 999px;
   background: var(--card);
   border: 1px solid var(--line);
-  font-size: 12.5px;
-  font-weight: 600;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
   color: var(--ink-soft);
   box-shadow: var(--shadow-btn);
   transition: transform 0.06s ease;
@@ -182,35 +196,25 @@ body {
   background: var(--accent);
   border-color: transparent;
   color: #fff;
-  box-shadow: 0 6px 16px rgba(212, 59, 240, 0.3);
+  box-shadow: 0 6px 16px rgba(169, 126, 79, 0.35);
 }
 
 .action-btn.primary:active {
-  box-shadow: 0 3px 8px rgba(212, 59, 240, 0.26);
+  box-shadow: 0 3px 8px rgba(169, 126, 79, 0.3);
 }
 
-/* Чёрные сегменты прототипа («спереди/сзади», «Манекен/Моё фото») */
 .action-btn[style*='rgb(17, 17, 17)'] {
   background: var(--ink) !important;
   color: #fff !important;
   border-color: transparent !important;
 }
 
-/* ТИХИЙ ФИДБЕК: лайки внутри карточки */
-.card .row .action-btn {
-  background: var(--object);
-  border-color: var(--hair);
-  box-shadow: none;
-  color: var(--ink-soft);
-  font-weight: 600;
-}
-
 .card {
   background: var(--card);
   border: 1px solid var(--hair);
   border-radius: var(--radius-card);
-  padding: 14px;
-  margin-bottom: 10px;
+  padding: 16px;
+  margin-bottom: 12px;
   box-shadow: var(--shadow-card);
 }
 
@@ -222,6 +226,65 @@ body {
   box-shadow: none;
   font-weight: 500;
   font-size: 13.5px;
+}
+
+/* Плитки вещей прототипа */
+.tile {
+  background: var(--tile);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.tile img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 0;
+  box-shadow: none;
+  filter: none;
+}
+
+/* Квадратные плитки навигации прототипа */
+.nav-tile {
+  flex: 1;
+  background: var(--card);
+  border: 1px solid var(--hair);
+  border-radius: var(--radius-card);
+  padding: 14px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: var(--shadow-card);
+  transition: transform 0.06s ease;
+}
+
+.nav-tile:active {
+    transform: scale(0.97);
+}
+
+.nav-tile-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--accent-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+.nav-tile-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--ink-soft);
 }
 
 .row {
@@ -242,6 +305,10 @@ body {
   line-height: 1.5;
 }
 
+.mono {
+  font-family: var(--mono);
+}
+
 .tabbar {
   position: fixed;
   bottom: 0;
@@ -252,8 +319,8 @@ body {
   display: flex;
   background: var(--card);
   border-top: 1px solid var(--line);
-  box-shadow: 0 -6px 20px rgba(17, 19, 24, 0.05);
-  padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+  box-shadow: 0 -8px 24px rgba(101, 78, 44, 0.08);
+  padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
   z-index: 40;
 }
 
@@ -270,29 +337,29 @@ body {
   letter-spacing: 0.2px;
   color: var(--muted);
   padding: 6px 0;
-  margin: 2px 0;
+  margin: 2px;
+  border-radius: 12px;
   cursor: pointer;
-  transition: color 0.15s ease;
+  transition: color 0.15s ease, background 0.15s ease;
 }
 
 .tab.active {
-  color: var(--accent);
+  color: var(--accent-deep);
   font-weight: 800;
+  background: var(--accent-soft);
 }
 
 .tab-icon {
   font-size: 20px;
 }
 
-/* Переключатель «Куда сегодня?» — белая карточка прототипа, чёрная стрелка как сегменты */
+/* Переключатель направления — пилюля-чип прототипа */
 .screen > div > button {
   background: var(--card) !important;
-  border: 1px solid var(--hair) !important;
-  box-shadow: var(--shadow-card) !important;
-}
-
-.screen > div > button > span:last-child {
-  background: var(--ink) !important;
+  border: 1px solid var(--line) !important;
+  box-shadow: var(--shadow-btn) !important;
+  border-radius: 999px !important;
+  padding: 6px 12px !important;
 }
 
 .screen > div > button > span:nth-child(2) > span:first-child {
@@ -300,7 +367,7 @@ body {
   font-weight: 800 !important;
   text-transform: uppercase !important;
   letter-spacing: 0.7px !important;
-  color: var(--muted) !important;
+  color: var(--accent-deep) !important;
 }
 
 .screen > div > button > span:nth-child(2) > span:last-child {
@@ -310,19 +377,12 @@ body {
   color: var(--ink) !important;
 }
 
-.screen > div > div.muted {
-  font-size: 11px !important;
-  letter-spacing: 0.2px;
-  color: #6b7280 !important;
-  margin: -4px 0 12px !important;
-}
-
-/* ПРЕМИУМ-МОДАЛКИ (PRO и карточка вещи) */
+/* ПРЕМИУМ-МОДАЛКИ */
 div[style*='position: fixed'] > .card {
   border: 1px solid var(--line);
   border-radius: 20px;
   padding: 16px;
-  box-shadow: 0 24px 64px rgba(17, 19, 24, 0.24);
+  box-shadow: 0 24px 64px rgba(70, 54, 30, 0.28);
 }
 
 div[style*='position: fixed'] > .card img {
@@ -362,21 +422,21 @@ div[style*='position: fixed'] > .card .action-btn.primary {
 
 .card[style*='cursor']:active {
   transform: scale(0.985);
-  box-shadow: 0 1px 6px rgba(17, 19, 24, 0.12);
+  box-shadow: 0 1px 6px rgba(101, 78, 44, 0.16);
 }
 
 .card.row > span.muted:last-child {
-  color: #c3c8d4;
+  color: var(--accent);
   font-weight: 800;
 }
 
 .card img {
   border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(17, 19, 24, 0.1);
+  box-shadow: 0 2px 8px rgba(101, 78, 44, 0.14);
 }
 
 .card > .row > div > div:first-child {
-  box-shadow: 0 2px 8px rgba(17, 19, 24, 0.14);
+  box-shadow: 0 2px 8px rgba(101, 78, 44, 0.18);
 }
 
 input,
@@ -392,7 +452,7 @@ select {
 }
 
 input::placeholder {
-  color: #a6abbd;
+  color: #b3a88f;
   font-weight: 500;
 }
 
