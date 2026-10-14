@@ -1,22 +1,22 @@
 :root {
-  --bg-top: #f2f5f2;
-  --bg-bottom: #e7ede7;
+  --bg-top: #f0f1f6;
+  --bg-bottom: #e9ebf1;
   --card: #ffffff;
-  --object: #edf2ed;
-  --ink: #16211b;
-  --ink-soft: #3d4a42;
-  --muted: #75837a;
-  --line: #dbe5dd;
-  --hair: #e8efe9;
-  --accent: #0e5c43;
-  --accent-deep: #0a4a36;
-  --accent-soft: #dceadf;
+  --object: #f6f7fa;
+  --ink: #111318;
+  --ink-soft: #3c4250;
+  --muted: #8b8f98;
+  --line: #e6e8ee;
+  --hair: #eef0f4;
+  --accent: #d43bf0;
+  --accent-deep: #b21bd6;
+  --accent-soft: #fbe6ff;
   --success: #16a34a;
   --danger: #e11d48;
-  --radius-card: 18px;
+  --radius-card: 16px;
   --radius-btn: 14px;
-  --shadow-card: 0 1px 2px rgba(14, 92, 67, 0.05), 0 10px 28px rgba(14, 92, 67, 0.1);
-  --shadow-btn: 0 1px 2px rgba(14, 92, 67, 0.08);
+  --shadow-card: 0 1px 2px rgba(17, 19, 24, 0.04), 0 8px 24px rgba(17, 19, 24, 0.06);
+  --shadow-btn: 0 1px 2px rgba(17, 19, 24, 0.06);
 }
 
 body {
@@ -25,7 +25,7 @@ body {
 }
 
 ::selection {
-  background: rgba(14, 92, 67, 0.2);
+  background: rgba(212, 59, 240, 0.2);
 }
 
 .phone {
@@ -40,7 +40,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 22px 4px;
+  padding: 10px 20px 4px;
   font-size: 12px;
   font-weight: 700;
   color: var(--ink);
@@ -56,7 +56,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 6px 22px 14px;
+  padding: 6px 20px 12px;
 }
 
 .brand {
@@ -84,43 +84,25 @@ body {
   transition: border-color 0.15s ease, color 0.15s ease;
 }
 
-span.badge-free {
-  color: var(--accent-deep);
-  border-color: var(--accent-soft);
-  background: var(--object);
-}
-
 .badge-free[style*='rgb(17, 17, 17)'] {
-  border-color: var(--accent) !important;
-  color: var(--accent-deep) !important;
+  border-color: var(--ink) !important;
+  color: var(--ink) !important;
 }
 
 .screen {
-  padding: 4px 22px 108px;
+  padding: 4px 20px 104px;
 }
 
-/* EDITORIAL: заголовок экрана с изумрудной линейкой-подписью */
 .screen-title {
-  font-family: 'Playfair Display', Georgia, serif;
-  font-size: 32px;
-  font-weight: 700;
-  letter-spacing: -0.6px;
-  line-height: 1.1;
-  margin: 6px 0 14px;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.8px;
+  line-height: 1.15;
+  margin: 6px 0 12px;
   color: var(--ink);
 }
 
-.screen-title::after {
-  content: '';
-  display: block;
-  width: 44px;
-  height: 3px;
-  border-radius: 2px;
-  background: var(--accent);
-  margin-top: 8px;
-}
-
-/* ОДНА PRIMARY НА ЭКРАН: навигация после заголовка — изумрудный контур */
+/* ОДНА PRIMARY НА ЭКРАН: навигация после заголовка — фуксиевый контур */
 .screen-title + .actions .action-btn.primary {
   background: var(--card);
   color: var(--accent-deep);
@@ -135,7 +117,7 @@ span.badge-free {
 .weather {
   font-size: 13px;
   font-weight: 600;
-  color: var(--ink-soft);
+  color: var(--muted);
   letter-spacing: 0.2px;
   margin-bottom: 8px;
   font-variant-numeric: tabular-nums;
@@ -153,7 +135,7 @@ span.badge-free {
   gap: 5px;
   padding: 7px 12px;
   border-radius: 999px;
-  background: var(--object);
+  background: var(--card);
   border: 1px solid var(--line);
   font-size: 12.5px;
   font-weight: 600;
@@ -169,15 +151,15 @@ span.badge-free {
 .actions {
   display: flex;
   gap: 8px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .action-btn {
   flex: 1;
   padding: 13px 10px;
   border-radius: var(--radius-btn);
-  background: var(--object);
-  border: 1px solid var(--line);
+  background: var(--card);
+  border: 1px solid var(--hair);
   font-weight: 700;
   font-size: 14px;
   letter-spacing: -0.1px;
@@ -197,25 +179,26 @@ span.badge-free {
 }
 
 .action-btn.primary {
-  background: linear-gradient(135deg, #17795a 0%, var(--accent-deep) 100%);
+  background: var(--accent);
   border-color: transparent;
   color: #fff;
-  box-shadow: 0 8px 22px rgba(14, 92, 67, 0.35);
+  box-shadow: 0 6px 16px rgba(212, 59, 240, 0.3);
 }
 
 .action-btn.primary:active {
-  box-shadow: 0 3px 10px rgba(14, 92, 67, 0.3);
+  box-shadow: 0 3px 8px rgba(212, 59, 240, 0.26);
 }
 
+/* Чёрные сегменты прототипа («спереди/сзади», «Манекен/Моё фото») */
 .action-btn[style*='rgb(17, 17, 17)'] {
-  background: var(--accent) !important;
+  background: var(--ink) !important;
   color: #fff !important;
   border-color: transparent !important;
 }
 
-/* ТИХИЙ ФИДБЕК: лайки внутри карточки — мятный призрак */
+/* ТИХИЙ ФИДБЕК: лайки внутри карточки */
 .card .row .action-btn {
-  background: #f6faf7;
+  background: var(--object);
   border-color: var(--hair);
   box-shadow: none;
   color: var(--ink-soft);
@@ -226,43 +209,19 @@ span.badge-free {
   background: var(--card);
   border: 1px solid var(--hair);
   border-radius: var(--radius-card);
-  padding: 16px;
-  margin-bottom: 12px;
+  padding: 14px;
+  margin-bottom: 10px;
   box-shadow: var(--shadow-card);
 }
 
 .card.muted {
-  background: #f3f7f3;
+  background: var(--object);
   color: var(--muted);
   text-align: center;
   padding: 26px 18px;
   box-shadow: none;
   font-weight: 500;
   font-size: 13.5px;
-}
-
-/* EDITORIAL: карточка образа = обложка номера */
-.screen > div > .card:first-of-type {
-  padding: 18px;
-}
-
-.screen > div > .card:first-of-type > div:first-child {
-  font-family: 'Playfair Display', Georgia, serif;
-  font-size: 19px;
-  font-weight: 700;
-  letter-spacing: -0.2px;
-  margin-bottom: 10px;
-}
-
-.screen > div > .card:first-of-type > div:first-child::before {
-  content: '✳ LOOK OF THE DAY';
-  display: block;
-  font-family: 'Manrope', sans-serif;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 1.4px;
-  color: var(--accent);
-  margin-bottom: 4px;
 }
 
 .row {
@@ -280,7 +239,7 @@ span.badge-free {
   color: var(--muted);
   font-size: 13px;
   font-weight: 500;
-  line-height: 1.55;
+  line-height: 1.5;
 }
 
 .tabbar {
@@ -293,8 +252,8 @@ span.badge-free {
   display: flex;
   background: var(--card);
   border-top: 1px solid var(--line);
-  box-shadow: 0 -8px 24px rgba(14, 92, 67, 0.08);
-  padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+  box-shadow: 0 -6px 20px rgba(17, 19, 24, 0.05);
+  padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
   z-index: 40;
 }
 
@@ -311,43 +270,37 @@ span.badge-free {
   letter-spacing: 0.2px;
   color: var(--muted);
   padding: 6px 0;
-  margin: 2px;
-  border-radius: 12px;
+  margin: 2px 0;
   cursor: pointer;
-  transition: color 0.15s ease, background 0.15s ease;
+  transition: color 0.15s ease;
 }
 
 .tab.active {
-  color: var(--accent-deep);
+  color: var(--accent);
   font-weight: 800;
-  background: var(--accent-soft);
 }
 
 .tab-icon {
   font-size: 20px;
 }
 
-/* Переключатель «Куда сегодня?» — белая карточка с изумрудной стрелкой */
+/* Переключатель «Куда сегодня?» — белая карточка прототипа, чёрная стрелка как сегменты */
 .screen > div > button {
   background: var(--card) !important;
   border: 1px solid var(--hair) !important;
   box-shadow: var(--shadow-card) !important;
 }
 
-.screen > div > button > span:first-child {
-  background: var(--accent-soft) !important;
-}
-
 .screen > div > button > span:last-child {
-  background: var(--accent) !important;
+  background: var(--ink) !important;
 }
 
 .screen > div > button > span:nth-child(2) > span:first-child {
   font-size: 10px !important;
   font-weight: 800 !important;
   text-transform: uppercase !important;
-  letter-spacing: 0.9px !important;
-  color: var(--accent-deep) !important;
+  letter-spacing: 0.7px !important;
+  color: var(--muted) !important;
 }
 
 .screen > div > button > span:nth-child(2) > span:last-child {
@@ -360,16 +313,16 @@ span.badge-free {
 .screen > div > div.muted {
   font-size: 11px !important;
   letter-spacing: 0.2px;
-  color: #5c6b62 !important;
+  color: #6b7280 !important;
   margin: -4px 0 12px !important;
 }
 
-/* ПРЕМИУМ-МОДАЛКИ */
+/* ПРЕМИУМ-МОДАЛКИ (PRO и карточка вещи) */
 div[style*='position: fixed'] > .card {
   border: 1px solid var(--line);
   border-radius: 20px;
   padding: 16px;
-  box-shadow: 0 24px 64px rgba(10, 40, 30, 0.28);
+  box-shadow: 0 24px 64px rgba(17, 19, 24, 0.24);
 }
 
 div[style*='position: fixed'] > .card img {
@@ -409,21 +362,21 @@ div[style*='position: fixed'] > .card .action-btn.primary {
 
 .card[style*='cursor']:active {
   transform: scale(0.985);
-  box-shadow: 0 1px 6px rgba(14, 92, 67, 0.14);
+  box-shadow: 0 1px 6px rgba(17, 19, 24, 0.12);
 }
 
 .card.row > span.muted:last-child {
-  color: var(--accent);
+  color: #c3c8d4;
   font-weight: 800;
 }
 
 .card img {
   border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(14, 92, 67, 0.12);
+  box-shadow: 0 2px 8px rgba(17, 19, 24, 0.1);
 }
 
 .card > .row > div > div:first-child {
-  box-shadow: 0 2px 8px rgba(14, 92, 67, 0.16);
+  box-shadow: 0 2px 8px rgba(17, 19, 24, 0.14);
 }
 
 input,
@@ -439,7 +392,7 @@ select {
 }
 
 input::placeholder {
-  color: #93a29a;
+  color: #a6abbd;
   font-weight: 500;
 }
 
