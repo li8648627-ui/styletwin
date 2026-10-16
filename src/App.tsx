@@ -9,6 +9,7 @@ import { LooksPage } from './components/LooksPage'
 import { OnboardingModal } from './components/OnboardingModal'
 
 type Tab = 'today' | 'wardrobe' | 'tryon' | 'looks' | 'profile'
+type ProReason = 'tryon_limit' | 'wardrobe_limit' | 'week_limit' | null
 
 const iconProps = {
   width: 20,
@@ -178,7 +179,7 @@ export default function App() {
   const [city, setCity] = useState<string>(() => localStorage.getItem('st_city') ?? 'Санкт-Петербург')
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [showPro, setShowPro] = useState(false)
-  const [proMsg, setProMsg] = useState('')
+  const [proReason, setProReason] = useState<ProReason>(null)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -203,6 +204,31 @@ export default function App() {
   const setCityAndSave = (c: string) => {
     setCity(c)
     localStorage.setItem('st_city', c)
+  }
+
+  const triggerPro = (reason: ProReason) => {
+    setProReason(reason)
+    setShowPro(true)
+  }
+
+  const getProTitle = () => {
+    if (!proReason) return lang === 'ru' ? 'Style Twin PRO' : 'Style Twin PRO'
+    const titles: Record<NonNullable<ProReason>, { ru: string; en: string }> = {
+      tryon_limit: { ru: 'Примерки закончились', en: 'Try-ons exhausted' },
+      wardrobe_limit: { ru: 'Гардероб полон', en: 'Wardrobe is full' },
+      week_limit: { ru: 'Нужно больше вещей', en: 'Need more items' },
+    }
+    return lang === 'ru' ? titles[proReason].ru : titles[proReason].en
+  }
+
+  const getProSubtitle = () => {
+    if (!proReason) return lang === 'ru' ? 'Стилист без лимитов' : 'Stylist without limits'
+    const subs: Record<NonNullable<ProReason>, { ru: string; en: string }> = {
+      tryon_limit: { ru: 'Разблокируйте безлимитные примерки', en: 'Unlock unlimited try-ons' },
+      wardrobe_limit: { ru: 'Разблокируйте безлимитный гардероб', en: 'Unlock unlimited wardrobe' },
+      week_limit: { ru: 'Разблокируйте «Неделю образов»', en: 'Unlock "Week of looks"' },
+    }
+    return lang === 'ru' ? subs[proReason].ru : subs[proReason].en
   }
 
   if (!ready) {
@@ -251,9 +277,9 @@ export default function App() {
       </div>
       <div className="screen">
         {tab === 'today' && <TodayPage city={city} onNavigate={(t) => setTab(t)} />}
-        {tab === 'wardrobe' && <WardrobePage />}
-        {tab === 'tryon' && <TryOnPage />}
-        {tab === 'looks' && <LooksPage />}
+        {tab === 'wardrobe' && <WardrobePage onShowPro={triggerPro} />}
+        {tab === 'tryon' && <TryOnPage onShowPro={triggerPro} />}
+        {tab === 'looks' && <LooksPage onShowPro={triggerPro} />}
         {tab === 'profile' && (
           <div>
             <h1 className="screen-title">{lang === 'ru' ? 'Профиль' : 'Profile'}</h1>
@@ -292,7 +318,7 @@ export default function App() {
               <span style={{ fontWeight: 600 }}>{lang === 'ru' ? 'Гардероб' : 'Wardrobe'}</span>
               <span className="muted">→</span>
             </div>
-            <div className="card row" style={{ cursor: 'pointer' }} onClick={() => setShowPro(true)}>
+            <div className="card row" style={{ cursor: 'pointer' }} onClick={() => triggerPro(null)}>
               <span style={{ fontWeight: 600 }}>{lang === 'ru' ? 'Подписка' : 'Subscription'}</span>
               <span className="muted">FREE →</span>
             </div>
@@ -330,9 +356,9 @@ export default function App() {
           }}
         >
           <div className="card" style={{ maxWidth: 360, width: '100%' }}>
-            <div style={{ textAlign: 'center', fontWeight: 800, fontSize: 18 }}>Style Twin PRO</div>
+            <div style={{ textAlign: 'center', fontWeight: 800, fontSize: 18 }}>{getProTitle()}</div>
             <div className="muted" style={{ textAlign: 'center', marginBottom: 12 }}>
-              {lang === 'ru' ? 'Стилист без лимитов' : 'Stylist without limits'}
+              {getProSubtitle()}
             </div>
             <table style={{ width: '100%', fontSize: 13 }}>
               <tbody>
@@ -365,29 +391,25 @@ export default function App() {
             <button
               className="action-btn primary"
               style={{ width: '100%' }}
-              onClick={() =>
-                setProMsg(
-                  lang === 'ru'
-                    ? '💳 Тестовые платежи подключим следующей итерацией'
-                    : '💳 Test payments coming next iteration'
-                )
-              }
+              onClick={() => {
+                alert(lang === 'ru' ? '💳 Тестовые платежи подключим следующей итерацией' : '💳 Test payments coming next iteration')
+              }}
             >
               ✳ {lang === 'ru' ? 'Оформить за $2.49/мес' : 'Get for $2.49/mo'}
             </button>
-            {proMsg && (
-              <div className="muted" style={{ textAlign: 'center', marginTop: 8 }}>{proMsg}</div>
-            )}
             <button
               className="action-btn"
               style={{ width: '100%', marginTop: 8 }}
               onClick={() => {
                 setShowPro(false)
-                setProMsg('')
+                setProReason(null)
               }}
             >
               {lang === 'ru' ? 'Позже' : 'Later'}
             </button>
+            <div className="muted" style={{ textAlign: 'center', fontSize: 11, marginTop: 8 }}>
+              {lang === 'ru' ? 'Отмена в любой момент · Возврат 7 дней' : 'Cancel anytime · 7-day refund'}
+            </div>
           </div>
         </div>
       )}

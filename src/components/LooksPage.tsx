@@ -6,6 +6,7 @@ import { type Weather } from '../lib/weather'
 type Item = { id: string; name: string; category: string; color: string | null; image_url: string | null }
 type Look = { id: string; name: string; item_ids: string[]; created_at: string }
 type EventId = 'office' | 'meeting' | 'date' | 'sport' | 'walk' | 'party' | 'theater' | 'trip'
+type ProReason = 'tryon_limit' | 'wardrobe_limit' | 'week_limit' | null
 
 const EVENT_ORDER: EventId[] = ['office', 'meeting', 'date', 'sport', 'walk', 'party', 'theater', 'trip']
 
@@ -96,7 +97,7 @@ function pickOutfit(
   return result.slice(0, 5)
 }
 
-export function LooksPage() {
+export function LooksPage({ onShowPro }: { onShowPro: (reason: ProReason) => void }) {
   const { lang } = useLang()
   const [looks, setLooks] = useState<Look[]>([])
   const [items, setItems] = useState<Item[]>([])
@@ -123,6 +124,10 @@ export function LooksPage() {
   }, [])
 
   const generateWeek = async () => {
+    if (items.length < 5) {
+      onShowPro('week_limit')
+      return
+    }
     setGenerating(true)
     setMessage('')
     try {

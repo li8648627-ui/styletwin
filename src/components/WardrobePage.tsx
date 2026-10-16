@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import { useLang } from '../i18n'
 
 type Item = { id: string; name: string; category: string; color: string | null; image_url: string | null }
+type ProReason = 'tryon_limit' | 'wardrobe_limit' | 'week_limit' | null
 
 const CATEGORY_ICON: Record<string, string> = {
   tops: '👕',
@@ -13,7 +14,9 @@ const CATEGORY_ICON: Record<string, string> = {
   other: '🧺',
 }
 
-export function WardrobePage() {
+const WARDROBE_LIMIT = 100
+
+export function WardrobePage({ onShowPro }: { onShowPro: (reason: ProReason) => void }) {
   const { lang } = useLang()
   const [items, setItems] = useState<Item[]>([])
   const [loading, setLoading] = useState(true)
@@ -32,6 +35,10 @@ export function WardrobePage() {
   }, [])
 
   const handleFile = async (file: File) => {
+    if (items.length >= WARDROBE_LIMIT) {
+      onShowPro('wardrobe_limit')
+      return
+    }
     setUploading(true)
     setMessage('')
     try {
@@ -81,7 +88,7 @@ export function WardrobePage() {
       <div>
         <h1 className="screen-title">{lang === 'ru' ? 'Гардероб' : 'Wardrobe'}</h1>
         <div className="card" style={{ textAlign: 'center', padding: '32px 20px' }}>
-          <div style={{ fontSize: 48, marginBottom: 12 }}></div>
+          <div style={{ fontSize: 48, marginBottom: 12 }}>📸</div>
           <div
             style={{
               fontFamily: "'Playfair Display', Georgia, serif",
@@ -127,7 +134,6 @@ export function WardrobePage() {
         {lang === 'ru' ? 'AI уберёт фон и приведёт к единому виду' : 'AI will remove the background and unify the look'}
       </div>
 
-      {/* Две кнопки как в прототипе: обработка + загрузка */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
         <label className="action-btn primary" style={{ flex: 1, cursor: 'pointer', textAlign: 'center' }}>
           ✂ {lang === 'ru' ? 'Обработать всё' : 'Process all'}
@@ -156,7 +162,6 @@ export function WardrobePage() {
         </label>
       </div>
 
-      {/* Сетка плиток */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
         {items.map((it) => (
           <div
