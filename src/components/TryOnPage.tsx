@@ -1,17 +1,18 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useLang } from '../i18n'
+import { trackEvent } from '../lib/analytics'
 
 type Item = { id: string; name: string; category: string; color: string | null; image_url: string | null }
 type ProReason = 'tryon_limit' | 'wardrobe_limit' | 'week_limit' | null
 
 const CATEGORY_ICON: Record<string, string> = {
   tops: '👕',
-  bottoms: '👖',
+  bottoms: '',
   dresses: '👗',
   shoes: '👟',
   accessories: '👜',
-  other: '🧺',
+  other: '',
 }
 
 const MAX_LAYERS = 5
@@ -35,7 +36,6 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
       .then(({ data, error }) => {
         if (!error && data) setItems(data)
       })
-    // Загружаем счётчик примерок
     supabase.auth.getUser().then(({ data }) => {
       if (data.user) {
         supabase
@@ -71,7 +71,6 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
       setMessage(lang === 'ru' ? 'Выберите хотя бы одну вещь' : 'Select at least one item')
       return
     }
-    // Проверка лимита примерок
     if (tryonCount >= TRYON_LIMIT) {
       onShowPro('tryon_limit')
       return
@@ -81,7 +80,6 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
       const { data: userData, error: userError } = await supabase.auth.getUser()
       if (userError || !userData.user) throw userError
 
-      // Обновляем счётчик
       const { data: usageData } = await supabase
         .from('usage')
         .select('id, tryons_this_month, month_start')
@@ -108,6 +106,9 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
           .eq('id', usageData.id)
         setTryonCount(usageData.tryons_this_month + 1)
       }
+
+      // ✅ Трекинг первой примерки — ВНУТРИ функции tryOn, после успешного обновления
+      await trackEvent('first_tryon', { layers: selected.length, mode })
 
       setMessage(
         lang === 'ru'
@@ -136,7 +137,6 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
           : 'Clothing on figure · 360° · layers with icons.'}
       </div>
 
-      {/* Переключатель режимов */}
       <div className="actions" style={{ marginBottom: 12 }}>
         <button
           className="action-btn"
@@ -160,7 +160,6 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
         </button>
       </div>
 
-      {/* Переключатель вида спереди/сзади */}
       {mode === 'mannequin' && (
         <div className="actions" style={{ marginBottom: 12 }}>
           <button
@@ -186,7 +185,6 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
         </div>
       )}
 
-      {/* Область предпросмотра */}
       <div
         className="card"
         style={{
@@ -202,12 +200,12 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
         {mode === 'mannequin' ? (
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: 80 }}>
-              {view === 'front' ? '🧍' : '🧍♀️'}
+              {view === 'front' ? '' : '🧍‍♀️'}
             </div>
             <div className="muted mono" style={{ fontSize: 11, marginTop: 8 }}>
               {lang === 'ru'
-                ? `← потяните манекен, чтобы повернуть`
-                : `← drag mannequin to rotate`}
+                ? '← потяните манекен, чтобы повернуть'
+                : '← drag mannequin to rotate'}
             </div>
             <input
               type="range"
@@ -232,17 +230,15 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
         )}
       </div>
 
-      {/* Счётчик слоёв */}
       <div className="row" style={{ marginBottom: 10 }}>
         <span style={{ fontWeight: 700 }}>
-          {lang === 'ru' ? '✳ Примерочная' : '✳ Fitting room'}
+          {lang === 'ru' ? ' Примерочная' : '✳ Fitting room'}
         </span>
         <span className="muted mono">
           {selected.length} / {MAX_LAYERS} {lang === 'ru' ? 'слоёв' : 'layers'}
         </span>
       </div>
 
-      {/* Список вещей для выбора */}
       <div className="muted mono" style={{ marginBottom: 8 }}>
         {lang === 'ru' ? 'Отметьте слои (до 5):' : 'Select layers (up to 5):'}
       </div>

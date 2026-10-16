@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useLang } from '../i18n'
+import { trackEvent } from '../lib/analytics'
 
 type Item = { id: string; name: string; category: string; color: string | null; image_url: string | null }
 type ProReason = 'tryon_limit' | 'wardrobe_limit' | 'week_limit' | null
@@ -9,7 +10,7 @@ const CATEGORY_ICON: Record<string, string> = {
   tops: '👕',
   bottoms: '👖',
   dresses: '👗',
-  shoes: '👟',
+  shoes: '',
   accessories: '👜',
   other: '🧺',
 }
@@ -69,6 +70,8 @@ export function WardrobePage({ onShowPro }: { onShowPro: (reason: ProReason) => 
         .select('id, name, category, color, image_url')
         .order('created_at', { ascending: false })
       if (data) setItems(data)
+      // Трекинг первой загруженной вещи
+      await trackEvent('first_item_uploaded', { filename: file.name, size: file.size })
       setMessage(
         lang === 'ru'
           ? '✅ Вещь добавлена! AI обработает фон.'
@@ -107,7 +110,7 @@ export function WardrobePage({ onShowPro }: { onShowPro: (reason: ProReason) => 
               : 'AI will remove the background and unify the look'}
           </div>
           <label className="action-btn primary" style={{ width: '100%', cursor: 'pointer', display: 'block' }}>
-            📥 {lang === 'ru' ? 'Загрузить фото' : 'Upload photo'}
+             {lang === 'ru' ? 'Загрузить фото' : 'Upload photo'}
             <input
               type="file"
               accept="image/*"
@@ -149,7 +152,7 @@ export function WardrobePage({ onShowPro }: { onShowPro: (reason: ProReason) => 
           />
         </label>
         <label className="action-btn" style={{ flex: 1, cursor: 'pointer', textAlign: 'center' }}>
-          📥 {lang === 'ru' ? 'Загрузить фото' : 'Upload photo'}
+           {lang === 'ru' ? 'Загрузить фото' : 'Upload photo'}
           <input
             type="file"
             accept="image/*"

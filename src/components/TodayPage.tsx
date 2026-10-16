@@ -2,14 +2,15 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useLang } from '../i18n'
 import { fetchWeather, formatWeather, type Weather } from '../lib/weather'
+import { trackEvent } from '../lib/analytics'
 
 type Item = { id: string; name: string; category: string; color: string | null; image_url: string | null }
 type EventId = 'office' | 'meeting' | 'date' | 'sport' | 'walk' | 'party' | 'theater' | 'trip'
-type NavTab = 'tryon' | 'wardrobe' | 'looks'
+type NavTab = 'today' | 'wardrobe' | 'tryon' | 'looks' | 'profile'
 
 const CATEGORY_ICON: Record<string, string> = {
   tops: '👕',
-  bottoms: '👖',
+  bottoms: '',
   dresses: '👗',
   shoes: '👟',
   accessories: '👜',
@@ -123,7 +124,7 @@ function pickOutfit(
 }
 
 export function TodayPage({ city, onNavigate }: { city: string; onNavigate: (tab: NavTab) => void }) {
-  const { t, lang } = useLang()
+  const { lang } = useLang()
   const [items, setItems] = useState<Item[]>([])
   const [weather, setWeather] = useState<Weather | null>(null)
   const [prefs, setPrefs] = useState<Record<string, number>>({})
@@ -172,6 +173,8 @@ export function TodayPage({ city, onNavigate }: { city: string; onNavigate: (tab
           if (error) throw error
         }
       }
+      if (delta === 1) await trackEvent('first_like', { outfit_length: outfit.length })
+
       const { data } = await supabase.from('preferences').select('item_id, score').eq('user_id', userData.user.id)
       const map: Record<string, number> = {}
       ;(data ?? []).forEach((r: { item_id: string; score: number }) => {
@@ -207,8 +210,13 @@ export function TodayPage({ city, onNavigate }: { city: string; onNavigate: (tab
         item_ids: outfit.map((i) => i.id),
       })
       if (error) throw error
+      await trackEvent('first_look_saved', { event, weather: weatherText })
       setSaved(true)
-      setMessage(t('today_saved_msg'))
+      setMessage(
+        lang === 'ru'
+          ? '✅ Образ сохранён в «Мои образы»!'
+          : '✅ Look saved to "My looks"!'
+      )
     } catch (err: any) {
       setMessage(`❌ ${err.message}`)
     }
@@ -219,7 +227,7 @@ export function TodayPage({ city, onNavigate }: { city: string; onNavigate: (tab
     await vote(-1)
     setSeed(seed + 1)
     setSaved(false)
-    setMessage(lang === 'ru' ? '👎 Поняла: покажу другой вариант.' : "👎 Got it: showing another option.")
+    setMessage(lang === 'ru' ? '👎 Поняла: покажу другой вариант.' : '👎 Got it: showing another option.')
   }
 
   const shareLook = async () => {
@@ -242,17 +250,18 @@ export function TodayPage({ city, onNavigate }: { city: string; onNavigate: (tab
             : '✅ Look copied — paste it anywhere!'
         )
       }
+      await trackEvent('first_share', { event, method: 'share' in navigator ? 'native' : 'clipboard' })
     } catch (err: any) {
       if (err.name !== 'AbortError') setMessage(`❌ ${err.message}`)
     }
   }
 
-  if (loading) return <div className="card muted">{t('today_stylist')}</div>
+  if (loading) return <div className="card muted">…</div>
 
   if (items.length === 0)
     return (
       <div>
-        <h1 className="screen-title">{t('today_title')}</h1>
+        <h1 className="screen-title">{lang === 'ru' ? 'Что надеть сегодня' : 'What to wear today'}</h1>
         <div className="card" style={{ textAlign: 'center', padding: '32px 20px' }}>
           <div style={{ fontSize: 48, marginBottom: 12 }}>🧺</div>
           <div
@@ -267,7 +276,7 @@ export function TodayPage({ city, onNavigate }: { city: string; onNavigate: (tab
           >
             {lang === 'ru' ? 'Шкаф пока пуст' : 'Wardrobe is empty'}
           </div>
-          <div className="muted" style={{ marginBottom: 16 }}>
+          <div className="muted mono" style={{ marginBottom: 16 }}>
             {lang === 'ru'
               ? 'Загрузите первую вещь — AI вырежет фон за секунду.'
               : 'Upload your first item — AI will remove the background in seconds.'}
@@ -299,11 +308,11 @@ export function TodayPage({ city, onNavigate }: { city: string; onNavigate: (tab
         </button>
         <span className="chip">{lang === 'ru' ? 'встреча 14:00' : 'meeting 2:00 PM'}</span>
       </div>
-      <h1 className="screen-title">{t('today_title')}</h1>
+      <h1 className="screen-title">{lang === 'ru' ? 'Что надеть сегодня' : 'What to wear today'}</h1>
 
       <div className="card">
         <div className="row" style={{ marginBottom: 12 }}>
-          <span style={{ fontWeight: 700 }}>{t('today_look')}</span>
+          <span style={{ fontWeight: 700 }}>{lang === 'ru' ? 'Образ на сегодня' : 'Look of the day'}</span>
           <span
             style={{
               width: 52,
@@ -327,14 +336,14 @@ export function TodayPage({ city, onNavigate }: { city: string; onNavigate: (tab
               {it.image_url ? (
                 <img src={it.image_url} alt={it.name} />
               ) : (
-                <span style={{ fontSize: 40 }}>{CATEGORY_ICON[it.category] ?? '🧺'}</span>
+                <span style={{ fontSize: 40 }}>{CATEGORY_ICON[it.category] ?? ''}</span>
               )}
             </div>
           ))}
         </div>
         <div className="actions" style={{ marginBottom: 8 }}>
           <button className="action-btn primary" onClick={wear} disabled={saved}>
-            ✳ {saved ? t('today_taken') : lang === 'ru' ? 'Надеть это' : 'Wear this'}
+             {saved ? (lang === 'ru' ? 'Надето' : 'Worn') : (lang === 'ru' ? 'Надеть это' : 'Wear this')}
           </button>
           <button className="action-btn" onClick={dislike}>{lang === 'ru' ? 'Не нравится' : "Don't like"}</button>
         </div>
