@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { useLang } from '../i18n'
 import { trackEvent } from '../lib/analytics'
@@ -7,7 +7,7 @@ type Item = { id: string; name: string; category: string; color: string | null; 
 type ProReason = 'tryon_limit' | 'wardrobe_limit' | 'week_limit' | null
 
 const CATEGORY_ICON: Record<string, string> = {
-  tops: '',
+  tops: '👕',
   shirts: '👕',
   blouses: '',
   tshirts: '',
@@ -18,7 +18,7 @@ const CATEGORY_ICON: Record<string, string> = {
   outerwear: '',
   bottoms: '👖',
   pants: '👖',
-  jeans: '',
+  jeans: '👖',
   trousers: '',
   skirts: '👗',
   dresses: '👗',
@@ -27,43 +27,42 @@ const CATEGORY_ICON: Record<string, string> = {
   boots: '👢',
   sandals: '👡',
   heels: '👠',
-  accessories: '',
+  accessories: '👜',
   bags: '👜',
   hats: '🧢',
-  scarves: '',
+  scarves: '🧣',
   belts: '👔',
   jewelry: '💍',
   other: '🧺',
 }
 
-// Базовые позиции (в пикселях от верхнего левого угла контейнера 320×320)
-const LAYER_POSITIONS: Record<string, { top: number; left: number; width: number; height: number }> = {
-  tops: { top: 80, left: 70, width: 180, height: 110 },
-  shirts: { top: 80, left: 70, width: 180, height: 110 },
-  blouses: { top: 80, left: 70, width: 180, height: 110 },
-  tshirts: { top: 80, left: 70, width: 180, height: 110 },
-  sweaters: { top: 75, left: 65, width: 190, height: 120 },
-  hoodies: { top: 70, left: 65, width: 190, height: 125 },
-  jackets: { top: 70, left: 60, width: 200, height: 130 },
-  coats: { top: 65, left: 60, width: 200, height: 140 },
-  outerwear: { top: 65, left: 60, width: 200, height: 140 },
-  bottoms: { top: 175, left: 80, width: 160, height: 130 },
-  pants: { top: 175, left: 80, width: 160, height: 130 },
-  jeans: { top: 175, left: 80, width: 160, height: 130 },
-  trousers: { top: 175, left: 80, width: 160, height: 130 },
-  skirts: { top: 175, left: 75, width: 170, height: 110 },
-  dresses: { top: 75, left: 70, width: 180, height: 220 },
-  shoes: { top: 280, left: 80, width: 160, height: 40 },
-  sneakers: { top: 280, left: 80, width: 160, height: 40 },
-  boots: { top: 255, left: 80, width: 160, height: 65 },
-  sandals: { top: 290, left: 80, width: 160, height: 30 },
-  heels: { top: 280, left: 80, width: 160, height: 40 },
-  accessories: { top: 50, left: 90, width: 140, height: 50 },
-  bags: { top: 190, left: 200, width: 80, height: 80 },
-  hats: { top: 15, left: 90, width: 140, height: 50 },
-  scarves: { top: 65, left: 80, width: 160, height: 50 },
-  belts: { top: 165, left: 80, width: 160, height: 25 },
-  jewelry: { top: 60, left: 110, width: 100, height: 40 },
+const LAYER_CONFIG: Record<string, { top: string; left: string; width: string; height: string; emojiSize: number }> = {
+  tops: { top: '28%', left: '22%', width: '56%', height: '32%', emojiSize: 80 },
+  shirts: { top: '28%', left: '22%', width: '56%', height: '32%', emojiSize: 80 },
+  blouses: { top: '28%', left: '22%', width: '56%', height: '32%', emojiSize: 80 },
+  tshirts: { top: '28%', left: '22%', width: '56%', height: '32%', emojiSize: 80 },
+  sweaters: { top: '26%', left: '20%', width: '60%', height: '36%', emojiSize: 90 },
+  hoodies: { top: '24%', left: '20%', width: '60%', height: '38%', emojiSize: 90 },
+  jackets: { top: '22%', left: '18%', width: '64%', height: '42%', emojiSize: 100 },
+  coats: { top: '20%', left: '18%', width: '64%', height: '48%', emojiSize: 110 },
+  outerwear: { top: '20%', left: '18%', width: '64%', height: '48%', emojiSize: 110 },
+  bottoms: { top: '55%', left: '25%', width: '50%', height: '42%', emojiSize: 90 },
+  pants: { top: '55%', left: '25%', width: '50%', height: '42%', emojiSize: 90 },
+  jeans: { top: '55%', left: '25%', width: '50%', height: '42%', emojiSize: 90 },
+  trousers: { top: '55%', left: '25%', width: '50%', height: '42%', emojiSize: 90 },
+  skirts: { top: '55%', left: '22%', width: '56%', height: '35%', emojiSize: 85 },
+  dresses: { top: '25%', left: '20%', width: '60%', height: '65%', emojiSize: 120 },
+  shoes: { top: '88%', left: '25%', width: '50%', height: '12%', emojiSize: 50 },
+  sneakers: { top: '88%', left: '25%', width: '50%', height: '12%', emojiSize: 50 },
+  boots: { top: '80%', left: '25%', width: '50%', height: '20%', emojiSize: 60 },
+  sandals: { top: '90%', left: '25%', width: '50%', height: '10%', emojiSize: 45 },
+  heels: { top: '88%', left: '25%', width: '50%', height: '12%', emojiSize: 50 },
+  accessories: { top: '60%', left: '65%', width: '25%', height: '25%', emojiSize: 60 },
+  bags: { top: '60%', left: '65%', width: '25%', height: '25%', emojiSize: 60 },
+  hats: { top: '5%', left: '30%', width: '40%', height: '15%', emojiSize: 55 },
+  scarves: { top: '22%', left: '25%', width: '50%', height: '15%', emojiSize: 60 },
+  belts: { top: '52%', left: '25%', width: '50%', height: '8%', emojiSize: 40 },
+  jewelry: { top: '20%', left: '35%', width: '30%', height: '12%', emojiSize: 50 },
 }
 
 const MAX_LAYERS = 5
@@ -73,12 +72,14 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
   const { lang } = useLang()
   const [items, setItems] = useState<Item[]>([])
   const [selected, setSelected] = useState<Item[]>([])
-  const [sizes, setSizes] = useState<Record<string, number>>({})
+  const [positions, setPositions] = useState<Record<string, { x: number; y: number }>>({})
   const [mode, setMode] = useState<'mannequin' | 'photo'>('mannequin')
   const [view, setView] = useState<'front' | 'back'>('front')
   const [photo, setPhoto] = useState<string | null>(null)
   const [tryonCount, setTryonCount] = useState(0)
   const [message, setMessage] = useState('')
+  const [dragging, setDragging] = useState<string | null>(null)
+  const previewRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     supabase
@@ -112,24 +113,58 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
     setSelected((prev) => {
       const exists = prev.find((x) => x.id === it.id)
       if (exists) {
-        // Удаляем вещь и её размер
-        setSizes((prevSizes) => {
-          const newSizes = { ...prevSizes }
-          delete newSizes[it.id]
-          return newSizes
+        setPositions((prevPos) => {
+          const newPos = { ...prevPos }
+          delete newPos[it.id]
+          return newPos
         })
         return prev.filter((x) => x.id !== it.id)
       }
       if (prev.length >= MAX_LAYERS) return prev
-      // Добавляем вещь с размером по умолчанию 1.0
-      setSizes((prevSizes) => ({ ...prevSizes, [it.id]: 1.0 }))
       return [...prev, it]
     })
   }
 
-  const updateSize = (itemId: string, newSize: number) => {
-    setSizes((prev) => ({ ...prev, [itemId]: newSize }))
+  const handleDragStart = (itemId: string, e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault()
+    setDragging(itemId)
   }
+
+  const handleDragMove = (e: MouseEvent | TouchEvent) => {
+    if (!dragging || !previewRef.current) return
+    
+    const rect = previewRef.current.getBoundingClientRect()
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
+    
+    const x = ((clientX - rect.left) / rect.width) * 100
+    const y = ((clientY - rect.top) / rect.height) * 100
+    
+    setPositions((prev) => ({
+      ...prev,
+      [dragging]: { x, y },
+    }))
+  }
+
+  const handleDragEnd = () => {
+    setDragging(null)
+  }
+
+  useEffect(() => {
+    if (dragging) {
+      window.addEventListener('mousemove', handleDragMove)
+      window.addEventListener('mouseup', handleDragEnd)
+      window.addEventListener('touchmove', handleDragMove)
+      window.addEventListener('touchend', handleDragEnd)
+      
+      return () => {
+        window.removeEventListener('mousemove', handleDragMove)
+        window.removeEventListener('mouseup', handleDragEnd)
+        window.removeEventListener('touchmove', handleDragMove)
+        window.removeEventListener('touchend', handleDragEnd)
+      }
+    }
+  }, [dragging])
 
   const tryOn = async () => {
     if (selected.length === 0) {
@@ -199,8 +234,8 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
       <h1 className="screen-title">{lang === 'ru' ? 'Примерка' : 'Try-On'}</h1>
       <div className="muted mono" style={{ marginBottom: 14 }}>
         {lang === 'ru'
-          ? 'Одежда по фигуре · 360° · слои с иконками.'
-          : 'Clothing on figure · 360° · layers with icons.'}
+          ? 'Перетаскивайте вещи по манекену'
+          : 'Drag items on the mannequin'}
       </div>
 
       {/* Переключатель режимов */}
@@ -229,8 +264,9 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
         </button>
       </div>
 
-      {/* Область предпросмотра */}
+      {/* Область предпросмотра с drag & drop */}
       <div 
+        ref={previewRef}
         className="card" 
         style={{ 
           marginBottom: 14,
@@ -239,6 +275,7 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
           width: '100%',
           height: 320,
           overflow: 'hidden',
+          cursor: dragging ? 'grabbing' : 'default',
         }}
       >
         {/* Базовый слой: манекен или фото */}
@@ -276,79 +313,84 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
               </>
             )}
           </svg>
-        ) : (
-          photo ? (
-            <img
-              src={photo}
-              alt="My photo"
-              style={{ 
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%', 
-                height: '100%', 
-                objectFit: 'contain',
-                zIndex: 0,
-              }}
-            />
-          ) : (
-            <div style={{ 
+        ) : photo ? (
+          <img
+            src={photo}
+            alt="My photo"
+            style={{ 
               position: 'absolute',
               top: 0,
               left: 0,
-              width: '100%',
-              height: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+              width: '100%', 
+              height: '100%', 
+              objectFit: 'contain',
               zIndex: 0,
-            }}>
-              <label className="action-btn primary" style={{ cursor: 'pointer' }}>
-                📷 {lang === 'ru' ? 'Загрузить фото' : 'Upload photo'}
-                <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhoto} />
-              </label>
-            </div>
-          )
+            }}
+          />
+        ) : (
+          <div style={{ 
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 0,
+          }}>
+            <label className="action-btn primary" style={{ cursor: 'pointer' }}>
+              📷 {lang === 'ru' ? 'Загрузить фото' : 'Upload photo'}
+              <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhoto} />
+            </label>
+          </div>
         )}
 
-        {/* Наложение выбранных вещей с учётом размера */}
+        {/* Перетаскиваемые вещи */}
         {selected.map((it, idx) => {
-          const basePos = LAYER_POSITIONS[it.category] ?? LAYER_POSITIONS['tops']
-          const size = sizes[it.id] ?? 1.0
-          const scaledWidth = basePos.width * size
-          const scaledHeight = basePos.height * size
-          const offsetX = (basePos.width - scaledWidth) / 2
-          const offsetY = (basePos.height - scaledHeight) / 2
+          const config = LAYER_CONFIG[it.category] ?? LAYER_CONFIG['tops']
+          const pos = positions[it.id] ?? { x: parseFloat(config.left), y: parseFloat(config.top) }
           
           return (
             <div
               key={it.id}
               style={{
                 position: 'absolute',
-                top: basePos.top + offsetY,
-                left: basePos.left + offsetX,
-                width: scaledWidth,
-                height: scaledHeight,
-                zIndex: idx + 10,
+                top: `${pos.y}%`,
+                left: `${pos.x}%`,
+                width: config.width,
+                height: config.height,
+                zIndex: dragging === it.id ? 100 : idx + 10,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                pointerEvents: 'none',
+                cursor: 'grab',
+                userSelect: 'none',
+                touchAction: 'none',
+                transition: dragging === it.id ? 'none' : 'all 0.2s ease',
               }}
+              onMouseDown={(e) => handleDragStart(it.id, e)}
+              onTouchStart={(e) => handleDragStart(it.id, e)}
             >
               {it.image_url ? (
                 <img 
                   src={it.image_url} 
                   alt={it.name}
                   style={{ 
-                    maxWidth: '100%', 
-                    maxHeight: '100%', 
+                    width: '100%',
+                    height: '100%',
                     objectFit: 'contain',
                     filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))',
+                    pointerEvents: 'none',
                   }} 
                 />
               ) : (
-                <span style={{ fontSize: 64 * size, opacity: 0.8 }}>
+                <span style={{ 
+                  fontSize: config.emojiSize,
+                  opacity: 0.85,
+                  lineHeight: 1,
+                  pointerEvents: 'none',
+                }}>
                   {CATEGORY_ICON[it.category] ?? '👕'}
                 </span>
               )}
@@ -356,7 +398,7 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
           )
         })}
 
-        {/* Подпись снизу */}
+        {/* Подпись */}
         <div style={{
           position: 'absolute',
           bottom: 12,
@@ -364,8 +406,9 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
           right: 0,
           textAlign: 'center',
           zIndex: 20,
+          pointerEvents: 'none',
         }}>
-          <div className="muted mono" style={{ fontSize: 11 }}>
+          <div className="muted mono" style={{ fontSize: 11, background: 'rgba(255,255,255,0.9)', padding: '4px 12px', borderRadius: 12, display: 'inline-block' }}>
             {selected.length === 0
               ? lang === 'ru' ? 'Выберите вещи ниже' : 'Select items below'
               : `${selected.length} из ${MAX_LAYERS} выбрано`}
@@ -410,14 +453,14 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
       {/* Счётчик слоёв */}
       <div className="row" style={{ marginBottom: 10 }}>
         <span style={{ fontWeight: 700 }}>
-          {lang === 'ru' ? ' Примерочная' : '✳ Fitting room'}
+          {lang === 'ru' ? '✳ Примерочная' : '✳ Fitting room'}
         </span>
         <span className="muted mono">
           {selected.length} / {MAX_LAYERS} {lang === 'ru' ? 'слоёв' : 'layers'}
         </span>
       </div>
 
-      {/* Список вещей с контролами размера */}
+      {/* Список вещей (без слайдера) */}
       <div className="muted mono" style={{ marginBottom: 8 }}>
         {lang === 'ru' ? 'Отметьте слои (до 5):' : 'Select layers (up to 5):'}
       </div>
@@ -425,81 +468,48 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
         {items.map((it) => {
           const isSelected = selected.some((x) => x.id === it.id)
           const icon = CATEGORY_ICON[it.category] ?? '🧺'
-          const currentSize = sizes[it.id] ?? 1.0
-          
           return (
-            <div key={it.id}>
-              <div
-                className="card row"
-                style={{
-                  cursor: 'pointer',
-                  background: isSelected ? 'var(--accent-soft)' : 'var(--card)',
-                  borderColor: isSelected ? 'var(--accent)' : 'var(--hair)',
-                  padding: '10px 12px',
-                  margin: 0,
-                }}
-                onClick={() => toggleItem(it)}
-              >
-                <span style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1 }}>
-                  {it.image_url ? (
-                    <img 
-                      src={it.image_url} 
-                      alt="" 
-                      style={{ 
-                        width: 32, 
-                        height: 32, 
-                        objectFit: 'cover', 
-                        borderRadius: 6,
-                        border: '1px solid var(--hair)',
-                      }} 
-                    />
-                  ) : (
-                    <span style={{ fontSize: 24, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {icon}
-                    </span>
-                  )}
-                  <span style={{ fontWeight: 600, fontSize: 13 }}>
-                    {it.name}
-                    {it.color && <span style={{ color: 'var(--muted)', fontWeight: 500, marginLeft: 4 }}>· {it.color}</span>}
-                  </span>
-                </span>
-                <input
-                  type="checkbox"
-                  checked={isSelected}
-                  onChange={() => {}}
-                  style={{ pointerEvents: 'none', width: 18, height: 18, accentColor: 'var(--accent)' }}
-                />
-              </div>
-              
-              {/* Слайдер размера для выбранной вещи */}
-              {isSelected && (
-                <div style={{ 
-                  padding: '8px 12px', 
-                  background: 'var(--object)', 
-                  borderRadius: '0 0 12px 12px',
-                  marginTop: -6,
-                  marginBottom: 6,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 10,
-                }}>
-                  <span className="muted mono" style={{ fontSize: 11, minWidth: 40 }}>
-                    {lang === 'ru' ? 'Размер:' : 'Size:'}
-                  </span>
-                  <input
-                    type="range"
-                    min="0.5"
-                    max="2.0"
-                    step="0.1"
-                    value={currentSize}
-                    onChange={(e) => updateSize(it.id, parseFloat(e.target.value))}
-                    style={{ flex: 1, height: 20 }}
+            <div
+              key={it.id}
+              className="card row"
+              style={{
+                cursor: 'pointer',
+                background: isSelected ? 'var(--accent-soft)' : 'var(--card)',
+                borderColor: isSelected ? 'var(--accent)' : 'var(--hair)',
+                padding: '10px 12px',
+                margin: 0,
+              }}
+              onClick={() => toggleItem(it)}
+            >
+              <span style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1 }}>
+                {it.image_url ? (
+                  <img 
+                    src={it.image_url} 
+                    alt="" 
+                    style={{ 
+                      width: 32, 
+                      height: 32, 
+                      objectFit: 'cover', 
+                      borderRadius: 6,
+                      border: '1px solid var(--hair)',
+                    }} 
                   />
-                  <span className="muted mono" style={{ fontSize: 11, minWidth: 30, textAlign: 'right' }}>
-                    {currentSize.toFixed(1)}×
+                ) : (
+                  <span style={{ fontSize: 24, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {icon}
                   </span>
-                </div>
-              )}
+                )}
+                <span style={{ fontWeight: 600, fontSize: 13 }}>
+                  {it.name}
+                  {it.color && <span style={{ color: 'var(--muted)', fontWeight: 500, marginLeft: 4 }}>· {it.color}</span>}
+                </span>
+              </span>
+              <input
+                type="checkbox"
+                checked={isSelected}
+                onChange={() => {}}
+                style={{ pointerEvents: 'none', width: 18, height: 18, accentColor: 'var(--accent)' }}
+              />
             </div>
           )
         })}
