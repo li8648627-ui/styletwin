@@ -7,7 +7,7 @@ type Item = { id: string; name: string; category: string; color: string | null; 
 type ProReason = 'tryon_limit' | 'wardrobe_limit' | 'week_limit' | null
 
 const CATEGORY_ICON: Record<string, string> = {
-  tops: '👕',
+  tops: '',
   shirts: '👕',
   blouses: '',
   tshirts: '',
@@ -18,7 +18,7 @@ const CATEGORY_ICON: Record<string, string> = {
   outerwear: '',
   bottoms: '👖',
   pants: '👖',
-  jeans: '👖',
+  jeans: '',
   trousers: '',
   skirts: '👗',
   dresses: '👗',
@@ -30,13 +30,13 @@ const CATEGORY_ICON: Record<string, string> = {
   accessories: '',
   bags: '👜',
   hats: '🧢',
-  scarves: '🧣',
+  scarves: '',
   belts: '👔',
   jewelry: '💍',
   other: '🧺',
 }
 
-// Позиции для наложения (в пикселях от верхнего левого угла контейнера 320×320)
+// Базовые позиции (в пикселях от верхнего левого угла контейнера 320×320)
 const LAYER_POSITIONS: Record<string, { top: number; left: number; width: number; height: number }> = {
   tops: { top: 80, left: 70, width: 180, height: 110 },
   shirts: { top: 80, left: 70, width: 180, height: 110 },
@@ -73,6 +73,7 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
   const { lang } = useLang()
   const [items, setItems] = useState<Item[]>([])
   const [selected, setSelected] = useState<Item[]>([])
+  const [sizes, setSizes] = useState<Record<string, number>>({})
   const [mode, setMode] = useState<'mannequin' | 'photo'>('mannequin')
   const [view, setView] = useState<'front' | 'back'>('front')
   const [photo, setPhoto] = useState<string | null>(null)
@@ -110,10 +111,24 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
   const toggleItem = (it: Item) => {
     setSelected((prev) => {
       const exists = prev.find((x) => x.id === it.id)
-      if (exists) return prev.filter((x) => x.id !== it.id)
+      if (exists) {
+        // Удаляем вещь и её размер
+        setSizes((prevSizes) => {
+          const newSizes = { ...prevSizes }
+          delete newSizes[it.id]
+          return newSizes
+        })
+        return prev.filter((x) => x.id !== it.id)
+      }
       if (prev.length >= MAX_LAYERS) return prev
+      // Добавляем вещь с размером по умолчанию 1.0
+      setSizes((prevSizes) => ({ ...prevSizes, [it.id]: 1.0 }))
       return [...prev, it]
     })
+  }
+
+  const updateSize = (itemId: string, newSize: number) => {
+    setSizes((prev) => ({ ...prev, [itemId]: newSize }))
   }
 
   const tryOn = async () => {
@@ -214,7 +229,7 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
         </button>
       </div>
 
-      {/* Область предпросмотра — ИСПРАВЛЕННАЯ */}
+      {/* Область предпросмотра */}
       <div 
         className="card" 
         style={{ 
@@ -262,7 +277,6 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
             )}
           </svg>
         ) : (
-          /* Режим фото */
           photo ? (
             <img
               src={photo}
@@ -297,18 +311,24 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
           )
         )}
 
-        {/* Наложение выбранных вещей — ИСПРАВЛЕННОЕ */}
+        {/* Наложение выбранных вещей с учётом размера */}
         {selected.map((it, idx) => {
-          const pos = LAYER_POSITIONS[it.category] ?? LAYER_POSITIONS['tops']
+          const basePos = LAYER_POSITIONS[it.category] ?? LAYER_POSITIONS['tops']
+          const size = sizes[it.id] ?? 1.0
+          const scaledWidth = basePos.width * size
+          const scaledHeight = basePos.height * size
+          const offsetX = (basePos.width - scaledWidth) / 2
+          const offsetY = (basePos.height - scaledHeight) / 2
+          
           return (
             <div
               key={it.id}
               style={{
                 position: 'absolute',
-                top: pos.top,
-                left: pos.left,
-                width: pos.width,
-                height: pos.height,
+                top: basePos.top + offsetY,
+                left: basePos.left + offsetX,
+                width: scaledWidth,
+                height: scaledHeight,
                 zIndex: idx + 10,
                 display: 'flex',
                 alignItems: 'center',
@@ -328,7 +348,7 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
                   }} 
                 />
               ) : (
-                <span style={{ fontSize: 64, opacity: 0.8 }}>
+                <span style={{ fontSize: 64 * size, opacity: 0.8 }}>
                   {CATEGORY_ICON[it.category] ?? '👕'}
                 </span>
               )}
@@ -390,14 +410,14 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
       {/* Счётчик слоёв */}
       <div className="row" style={{ marginBottom: 10 }}>
         <span style={{ fontWeight: 700 }}>
-          {lang === 'ru' ? '✳ Примерочная' : '✳ Fitting room'}
+          {lang === 'ru' ? ' Примерочная' : '✳ Fitting room'}
         </span>
         <span className="muted mono">
           {selected.length} / {MAX_LAYERS} {lang === 'ru' ? 'слоёв' : 'layers'}
         </span>
       </div>
 
-      {/* Список вещей */}
+      {/* Список вещей с контролами размера */}
       <div className="muted mono" style={{ marginBottom: 8 }}>
         {lang === 'ru' ? 'Отметьте слои (до 5):' : 'Select layers (up to 5):'}
       </div>
@@ -405,48 +425,81 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
         {items.map((it) => {
           const isSelected = selected.some((x) => x.id === it.id)
           const icon = CATEGORY_ICON[it.category] ?? '🧺'
+          const currentSize = sizes[it.id] ?? 1.0
+          
           return (
-            <div
-              key={it.id}
-              className="card row"
-              style={{
-                cursor: 'pointer',
-                background: isSelected ? 'var(--accent-soft)' : 'var(--card)',
-                borderColor: isSelected ? 'var(--accent)' : 'var(--hair)',
-                padding: '10px 12px',
-                margin: 0,
-              }}
-              onClick={() => toggleItem(it)}
-            >
-              <span style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1 }}>
-                {it.image_url ? (
-                  <img 
-                    src={it.image_url} 
-                    alt="" 
-                    style={{ 
-                      width: 32, 
-                      height: 32, 
-                      objectFit: 'cover', 
-                      borderRadius: 6,
-                      border: '1px solid var(--hair)',
-                    }} 
-                  />
-                ) : (
-                  <span style={{ fontSize: 24, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {icon}
+            <div key={it.id}>
+              <div
+                className="card row"
+                style={{
+                  cursor: 'pointer',
+                  background: isSelected ? 'var(--accent-soft)' : 'var(--card)',
+                  borderColor: isSelected ? 'var(--accent)' : 'var(--hair)',
+                  padding: '10px 12px',
+                  margin: 0,
+                }}
+                onClick={() => toggleItem(it)}
+              >
+                <span style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1 }}>
+                  {it.image_url ? (
+                    <img 
+                      src={it.image_url} 
+                      alt="" 
+                      style={{ 
+                        width: 32, 
+                        height: 32, 
+                        objectFit: 'cover', 
+                        borderRadius: 6,
+                        border: '1px solid var(--hair)',
+                      }} 
+                    />
+                  ) : (
+                    <span style={{ fontSize: 24, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {icon}
+                    </span>
+                  )}
+                  <span style={{ fontWeight: 600, fontSize: 13 }}>
+                    {it.name}
+                    {it.color && <span style={{ color: 'var(--muted)', fontWeight: 500, marginLeft: 4 }}>· {it.color}</span>}
                   </span>
-                )}
-                <span style={{ fontWeight: 600, fontSize: 13 }}>
-                  {it.name}
-                  {it.color && <span style={{ color: 'var(--muted)', fontWeight: 500, marginLeft: 4 }}>· {it.color}</span>}
                 </span>
-              </span>
-              <input
-                type="checkbox"
-                checked={isSelected}
-                onChange={() => {}}
-                style={{ pointerEvents: 'none', width: 18, height: 18, accentColor: 'var(--accent)' }}
-              />
+                <input
+                  type="checkbox"
+                  checked={isSelected}
+                  onChange={() => {}}
+                  style={{ pointerEvents: 'none', width: 18, height: 18, accentColor: 'var(--accent)' }}
+                />
+              </div>
+              
+              {/* Слайдер размера для выбранной вещи */}
+              {isSelected && (
+                <div style={{ 
+                  padding: '8px 12px', 
+                  background: 'var(--object)', 
+                  borderRadius: '0 0 12px 12px',
+                  marginTop: -6,
+                  marginBottom: 6,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                }}>
+                  <span className="muted mono" style={{ fontSize: 11, minWidth: 40 }}>
+                    {lang === 'ru' ? 'Размер:' : 'Size:'}
+                  </span>
+                  <input
+                    type="range"
+                    min="0.5"
+                    max="2.0"
+                    step="0.1"
+                    value={currentSize}
+                    onChange={(e) => updateSize(it.id, parseFloat(e.target.value))}
+                    style={{ flex: 1, height: 20 }}
+                  />
+                  <span className="muted mono" style={{ fontSize: 11, minWidth: 30, textAlign: 'right' }}>
+                    {currentSize.toFixed(1)}×
+                  </span>
+                </div>
+              )}
             </div>
           )
         })}
