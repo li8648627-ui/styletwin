@@ -6,12 +6,34 @@ import { trackEvent } from '../lib/analytics'
 type Item = { id: string; name: string; category: string; color: string | null; image_url: string | null }
 type ProReason = 'tryon_limit' | 'wardrobe_limit' | 'week_limit' | null
 
+// Расширенный словарь иконок для всех возможных категорий
 const CATEGORY_ICON: Record<string, string> = {
-  tops: '👕',
+  tops: '',
+  shirts: '',
+  blouses: '👚',
+  tshirts: '👕',
+  sweaters: '🧥',
+  hoodies: '🧥',
+  jackets: '🧥',
+  coats: '🧥',
+  outerwear: '🧥',
   bottoms: '',
+  pants: '',
+  jeans: '',
+  trousers: '',
+  skirts: '👗',
   dresses: '',
-  shoes: '👟',
+  shoes: '',
+  sneakers: '👟',
+  boots: '👢',
+  sandals: '👡',
+  heels: '',
   accessories: '👜',
+  bags: '👜',
+  hats: '',
+  scarves: '🧣',
+  belts: '👔',
+  jewelry: '💍',
   other: '',
 }
 
@@ -112,7 +134,7 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
       setCompleted(true)
       setMessage(
         lang === 'ru'
-          ? `✳ Образ готов! (${tryonCount + 1}/${TRYON_LIMIT})`
+          ? ` Образ готов! (${tryonCount + 1}/${TRYON_LIMIT})`
           : `✳ Look ready! (${tryonCount + 1}/${TRYON_LIMIT})`
       )
     } catch (err: any) {
@@ -143,7 +165,7 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
           : 'Clothing on figure · 360° · layers with icons.'}
       </div>
 
-      {/* Переключатель режимов: манекен / фото */}
+      {/* Переключатель режимов */}
       <div className="actions" style={{ marginBottom: 12 }}>
         <button
           className="action-btn"
@@ -218,7 +240,7 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
             </div>
           ) : (
             <div style={{ textAlign: 'center' }}>
-              {/* Псевдо-3D манекен с глубиной и тенями */}
+              {/* 3D манекен */}
               <div style={{ 
                 position: 'relative', 
                 width: 140, 
@@ -227,7 +249,6 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
                 transform: 'perspective(500px) rotateY(0deg)',
                 transformStyle: 'preserve-3d',
               }}>
-                {/* Тень под манекеном */}
                 <div style={{
                   position: 'absolute',
                   bottom: 10,
@@ -240,9 +261,7 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
                   filter: 'blur(4px)',
                 }} />
                 
-                {/* SVG манекен с объёмом */}
                 <svg width="140" height="200" viewBox="0 0 140 200" style={{ position: 'relative', zIndex: 1 }}>
-                  {/* Градиенты для объёма */}
                   <defs>
                     <linearGradient id="bodyGradFront" x1="0%" y1="0%" x2="100%" y2="0%">
                       <stop offset="0%" stopColor="#f0ebe3" />
@@ -261,23 +280,16 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
                   
                   {view === 'front' ? (
                     <>
-                      {/* Голова с объёмом */}
                       <circle cx="70" cy="25" r="14" fill="url(#bodyGradFront)" stroke="#d4c9b8" strokeWidth="1.5" filter="url(#shadow3d)" />
-                      {/* Туловище с перспективой */}
                       <path d="M 42 55 Q 70 50 98 55 L 105 165 Q 70 172 35 165 Z" fill="url(#bodyGradFront)" stroke="#d4c9b8" strokeWidth="1.5" filter="url(#shadow3d)" />
-                      {/* Руки */}
                       <path d="M 42 60 L 25 110 Q 22 115 26 118 Q 30 120 33 112 L 45 75" fill="#f0ebe3" stroke="#d4c9b8" strokeWidth="1.5" />
                       <path d="M 98 60 L 115 110 Q 118 115 114 118 Q 110 120 107 112 L 95 75" fill="#f0ebe3" stroke="#d4c9b8" strokeWidth="1.5" />
-                      {/* Блик для объёма */}
                       <ellipse cx="70" cy="100" rx="18" ry="40" fill="rgba(255,255,255,0.15)" />
                     </>
                   ) : (
                     <>
-                      {/* Голова сзади */}
                       <circle cx="70" cy="25" r="14" fill="url(#bodyGradBack)" stroke="#d4c9b8" strokeWidth="1.5" filter="url(#shadow3d)" />
-                      {/* Туловище сзади (уже) */}
                       <path d="M 45 55 Q 70 52 95 55 L 100 165 Q 70 170 40 165 Z" fill="url(#bodyGradBack)" stroke="#d4c9b8" strokeWidth="1.5" filter="url(#shadow3d)" />
-                      {/* Руки сзади */}
                       <path d="M 45 60 L 30 110 Q 27 115 31 118 Q 35 120 38 112 L 48 75" fill="#f0ebe3" stroke="#d4c9b8" strokeWidth="1.5" />
                       <path d="M 95 60 L 110 110 Q 113 115 109 118 Q 105 120 102 112 L 92 75" fill="#f0ebe3" stroke="#d4c9b8" strokeWidth="1.5" />
                     </>
@@ -295,7 +307,6 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
                     : `${selected.length} of ${MAX_LAYERS} selected`}
               </div>
               
-              {/* Переключатель спереди/сзади */}
               <div className="actions" style={{ marginTop: 16, marginBottom: 0 }}>
                 <button
                   className="action-btn"
@@ -329,7 +340,6 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
             </div>
           )
         ) : (
-          /* Режим фото */
           <div style={{ width: '100%', textAlign: 'center' }}>
             {photo ? (
               <div>
@@ -362,13 +372,14 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
         </span>
       </div>
 
-      {/* Список вещей */}
+      {/* Список вещей — ИСПРАВЛЕННЫЙ */}
       <div className="muted mono" style={{ marginBottom: 8 }}>
         {lang === 'ru' ? 'Отметьте слои (до 5):' : 'Select layers (up to 5):'}
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14 }}>
         {items.map((it) => {
           const isSelected = selected.some((x) => x.id === it.id)
+          const icon = CATEGORY_ICON[it.category] ?? ''
           return (
             <div
               key={it.id}
@@ -378,20 +389,39 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
                 background: isSelected ? 'var(--accent-soft)' : 'var(--card)',
                 borderColor: isSelected ? 'var(--accent)' : 'var(--hair)',
                 padding: '10px 12px',
+                margin: 0,
               }}
               onClick={() => toggleItem(it)}
             >
               <span style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1 }}>
-                <span style={{ fontSize: 20 }}>
-                  {it.image_url ? (
-                    <img src={it.image_url} alt="" style={{ width: 28, height: 28, objectFit: 'cover', borderRadius: 4 }} />
-                  ) : (
-                    CATEGORY_ICON[it.category] ?? ''
-                  )}
-                </span>
+                {/* Мини-превью: фото или иконка категории */}
+                {it.image_url ? (
+                  <img 
+                    src={it.image_url} 
+                    alt="" 
+                    style={{ 
+                      width: 32, 
+                      height: 32, 
+                      objectFit: 'cover', 
+                      borderRadius: 6,
+                      border: '1px solid var(--hair)',
+                    }} 
+                  />
+                ) : (
+                  <span style={{ 
+                    fontSize: 24, 
+                    width: 32, 
+                    height: 32, 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center' 
+                  }}>
+                    {icon}
+                  </span>
+                )}
                 <span style={{ fontWeight: 600, fontSize: 13 }}>
                   {it.name}
-                  {it.color && <span style={{ color: 'var(--muted)', fontWeight: 500 }}> · {it.color}</span>}
+                  {it.color && <span style={{ color: 'var(--muted)', fontWeight: 500, marginLeft: 4 }}>· {it.color}</span>}
                 </span>
               </span>
               <input
