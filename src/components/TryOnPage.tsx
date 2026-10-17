@@ -6,10 +6,9 @@ import { trackEvent } from '../lib/analytics'
 type Item = { id: string; name: string; category: string; color: string | null; image_url: string | null }
 type ProReason = 'tryon_limit' | 'wardrobe_limit' | 'week_limit' | null
 
-// Расширенный словарь иконок для всех возможных категорий
 const CATEGORY_ICON: Record<string, string> = {
   tops: '',
-  shirts: '',
+  shirts: '👕',
   blouses: '👚',
   tshirts: '👕',
   sweaters: '🧥',
@@ -22,8 +21,8 @@ const CATEGORY_ICON: Record<string, string> = {
   jeans: '',
   trousers: '',
   skirts: '👗',
-  dresses: '',
-  shoes: '',
+  dresses: '👗',
+  shoes: '👟',
   sneakers: '👟',
   boots: '👢',
   sandals: '👡',
@@ -35,6 +34,36 @@ const CATEGORY_ICON: Record<string, string> = {
   belts: '👔',
   jewelry: '💍',
   other: '',
+}
+
+// Позиции для наложения вещей на манекен (в процентах от контейнера)
+const LAYER_POSITIONS: Record<string, { top: string; left: string; width: string; height: string }> = {
+  tops: { top: '25%', left: '20%', width: '60%', height: '35%' },
+  shirts: { top: '25%', left: '20%', width: '60%', height: '35%' },
+  blouses: { top: '25%', left: '20%', width: '60%', height: '35%' },
+  tshirts: { top: '25%', left: '20%', width: '60%', height: '35%' },
+  sweaters: { top: '25%', left: '18%', width: '64%', height: '38%' },
+  hoodies: { top: '22%', left: '18%', width: '64%', height: '40%' },
+  jackets: { top: '22%', left: '15%', width: '70%', height: '42%' },
+  coats: { top: '20%', left: '15%', width: '70%', height: '45%' },
+  outerwear: { top: '20%', left: '15%', width: '70%', height: '45%' },
+  bottoms: { top: '55%', left: '25%', width: '50%', height: '40%' },
+  pants: { top: '55%', left: '25%', width: '50%', height: '40%' },
+  jeans: { top: '55%', left: '25%', width: '50%', height: '40%' },
+  trousers: { top: '55%', left: '25%', width: '50%', height: '40%' },
+  skirts: { top: '55%', left: '22%', width: '56%', height: '35%' },
+  dresses: { top: '25%', left: '20%', width: '60%', height: '65%' },
+  shoes: { top: '88%', left: '25%', width: '50%', height: '12%' },
+  sneakers: { top: '88%', left: '25%', width: '50%', height: '12%' },
+  boots: { top: '80%', left: '25%', width: '50%', height: '20%' },
+  sandals: { top: '90%', left: '25%', width: '50%', height: '10%' },
+  heels: { top: '88%', left: '25%', width: '50%', height: '12%' },
+  accessories: { top: '15%', left: '30%', width: '40%', height: '15%' },
+  bags: { top: '60%', left: '65%', width: '25%', height: '25%' },
+  hats: { top: '5%', left: '30%', width: '40%', height: '15%' },
+  scarves: { top: '20%', left: '25%', width: '50%', height: '15%' },
+  belts: { top: '52%', left: '25%', width: '50%', height: '8%' },
+  jewelry: { top: '18%', left: '35%', width: '30%', height: '12%' },
 }
 
 const MAX_LAYERS = 5
@@ -134,11 +163,11 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
       setCompleted(true)
       setMessage(
         lang === 'ru'
-          ? ` Образ готов! (${tryonCount + 1}/${TRYON_LIMIT})`
+          ? `✳ Образ готов! (${tryonCount + 1}/${TRYON_LIMIT})`
           : `✳ Look ready! (${tryonCount + 1}/${TRYON_LIMIT})`
       )
     } catch (err: any) {
-      setMessage(`❌ ${err.message}`)
+      setMessage(` ${err.message}`)
     }
   }
 
@@ -197,164 +226,151 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
         </button>
       </div>
 
-      {/* Область предпросмотра */}
-      <div className="card" style={{ marginBottom: 14, minHeight: 280, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      {/* Область предпросмотра с наложением вещей */}
+      <div 
+        className="card" 
+        style={{ 
+          marginBottom: 14, 
+          minHeight: 320, 
+          position: 'relative',
+          overflow: 'hidden',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        {/* Базовый слой: манекен или фото */}
         {mode === 'mannequin' ? (
-          completed ? (
-            <div style={{ textAlign: 'center' }}>
-              <div className="row" style={{ marginBottom: 12, justifyContent: 'center' }}>
-                <span style={{ fontWeight: 700 }}>
-                  {lang === 'ru' ? ' Образ готов' : '✳ Look ready'}
-                </span>
-                <span
+          <div style={{ position: 'relative', width: '100%', height: 320 }}>
+            {/* SVG манекен */}
+            <svg 
+              width="100%" 
+              height="320" 
+              viewBox="0 0 200 320" 
+              style={{ position: 'absolute', top: 0, left: 0 }}
+            >
+              <defs>
+                <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#f0ebe3" />
+                  <stop offset="50%" stopColor="#f7f2ea" />
+                  <stop offset="100%" stopColor="#e8e0d5" />
+                </linearGradient>
+                <filter id="shadow3d">
+                  <feDropShadow dx="0" dy="4" stdDeviation="6" floodOpacity="0.12" />
+                </filter>
+              </defs>
+              
+              {view === 'front' ? (
+                <>
+                  <circle cx="100" cy="40" r="20" fill="url(#bodyGrad)" stroke="#d4c9b8" strokeWidth="2" filter="url(#shadow3d)" />
+                  <path d="M 60 80 Q 100 70 140 80 L 150 260 Q 100 275 50 260 Z" fill="url(#bodyGrad)" stroke="#d4c9b8" strokeWidth="2" filter="url(#shadow3d)" />
+                  <path d="M 60 90 L 35 170 Q 30 180 35 185 Q 42 190 48 175 L 68 115" fill="#f0ebe3" stroke="#d4c9b8" strokeWidth="2" />
+                  <path d="M 140 90 L 165 170 Q 170 180 165 185 Q 158 190 152 175 L 132 115" fill="#f0ebe3" stroke="#d4c9b8" strokeWidth="2" />
+                </>
+              ) : (
+                <>
+                  <circle cx="100" cy="40" r="20" fill="url(#bodyGrad)" stroke="#d4c9b8" strokeWidth="2" filter="url(#shadow3d)" />
+                  <path d="M 65 80 Q 100 75 135 80 L 145 260 Q 100 272 55 260 Z" fill="url(#bodyGrad)" stroke="#d4c9b8" strokeWidth="2" filter="url(#shadow3d)" />
+                  <path d="M 65 90 L 40 170 Q 35 180 40 185 Q 47 190 53 175 L 70 115" fill="#f0ebe3" stroke="#d4c9b8" strokeWidth="2" />
+                  <path d="M 135 90 L 160 170 Q 165 180 160 185 Q 153 190 147 175 L 130 115" fill="#f0ebe3" stroke="#d4c9b8" strokeWidth="2" />
+                </>
+              )}
+            </svg>
+
+            {/* Наложение выбранных вещей */}
+            {selected.map((it, idx) => {
+              const pos = LAYER_POSITIONS[it.category] ?? LAYER_POSITIONS['tops']
+              return (
+                <div
+                  key={it.id}
                   style={{
-                    width: 44,
-                    height: 44,
-                    borderRadius: '50%',
-                    background: `conic-gradient(var(--accent) ${completeness}%, #ece4d4 0)`,
+                    position: 'absolute',
+                    top: pos.top,
+                    left: pos.left,
+                    width: pos.width,
+                    height: pos.height,
+                    zIndex: idx + 1,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    marginLeft: 10,
                   }}
                 >
-                  <span style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--card)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--mono)', fontSize: 9, fontWeight: 700, color: 'var(--accent-deep)' }}>
-                    {selected.length}/{MAX_LAYERS}
-                  </span>
-                </span>
-              </div>
-              <div className="muted mono" style={{ marginBottom: 10, fontSize: 11 }}>
-                {lang === 'ru' ? 'смотри спереди и сзади' : 'view front and back'}
-              </div>
-              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'center' }}>
-                {selected.map((it) => (
-                  <div key={it.id} className="tile" style={{ width: 64, height: 64 }}>
-                    {it.image_url ? (
-                      <img src={it.image_url} alt={it.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                    ) : (
-                      <span style={{ fontSize: 24 }}>{CATEGORY_ICON[it.category] ?? ''}</span>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div style={{ textAlign: 'center' }}>
-              {/* 3D манекен */}
-              <div style={{ 
-                position: 'relative', 
-                width: 140, 
-                height: 200, 
-                margin: '0 auto',
-                transform: 'perspective(500px) rotateY(0deg)',
-                transformStyle: 'preserve-3d',
-              }}>
-                <div style={{
-                  position: 'absolute',
-                  bottom: 10,
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  width: 80,
-                  height: 12,
-                  background: 'radial-gradient(ellipse at center, rgba(101,78,44,0.15) 0%, transparent 70%)',
-                  borderRadius: '50%',
-                  filter: 'blur(4px)',
-                }} />
-                
-                <svg width="140" height="200" viewBox="0 0 140 200" style={{ position: 'relative', zIndex: 1 }}>
-                  <defs>
-                    <linearGradient id="bodyGradFront" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="#f0ebe3" />
-                      <stop offset="50%" stopColor="#f7f2ea" />
-                      <stop offset="100%" stopColor="#e8e0d5" />
-                    </linearGradient>
-                    <linearGradient id="bodyGradBack" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="#e8e0d5" />
-                      <stop offset="50%" stopColor="#f7f2ea" />
-                      <stop offset="100%" stopColor="#f0ebe3" />
-                    </linearGradient>
-                    <filter id="shadow3d">
-                      <feDropShadow dx="0" dy="4" stdDeviation="6" floodOpacity="0.12" />
-                    </filter>
-                  </defs>
-                  
-                  {view === 'front' ? (
-                    <>
-                      <circle cx="70" cy="25" r="14" fill="url(#bodyGradFront)" stroke="#d4c9b8" strokeWidth="1.5" filter="url(#shadow3d)" />
-                      <path d="M 42 55 Q 70 50 98 55 L 105 165 Q 70 172 35 165 Z" fill="url(#bodyGradFront)" stroke="#d4c9b8" strokeWidth="1.5" filter="url(#shadow3d)" />
-                      <path d="M 42 60 L 25 110 Q 22 115 26 118 Q 30 120 33 112 L 45 75" fill="#f0ebe3" stroke="#d4c9b8" strokeWidth="1.5" />
-                      <path d="M 98 60 L 115 110 Q 118 115 114 118 Q 110 120 107 112 L 95 75" fill="#f0ebe3" stroke="#d4c9b8" strokeWidth="1.5" />
-                      <ellipse cx="70" cy="100" rx="18" ry="40" fill="rgba(255,255,255,0.15)" />
-                    </>
+                  {it.image_url ? (
+                    <img 
+                      src={it.image_url} 
+                      alt={it.name}
+                      style={{ 
+                        maxWidth: '100%', 
+                        maxHeight: '100%', 
+                        objectFit: 'contain',
+                        filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.15))',
+                      }} 
+                    />
                   ) : (
-                    <>
-                      <circle cx="70" cy="25" r="14" fill="url(#bodyGradBack)" stroke="#d4c9b8" strokeWidth="1.5" filter="url(#shadow3d)" />
-                      <path d="M 45 55 Q 70 52 95 55 L 100 165 Q 70 170 40 165 Z" fill="url(#bodyGradBack)" stroke="#d4c9b8" strokeWidth="1.5" filter="url(#shadow3d)" />
-                      <path d="M 45 60 L 30 110 Q 27 115 31 118 Q 35 120 38 112 L 48 75" fill="#f0ebe3" stroke="#d4c9b8" strokeWidth="1.5" />
-                      <path d="M 95 60 L 110 110 Q 113 115 109 118 Q 105 120 102 112 L 92 75" fill="#f0ebe3" stroke="#d4c9b8" strokeWidth="1.5" />
-                    </>
+                    <span style={{ fontSize: 48, opacity: 0.7 }}>
+                      {CATEGORY_ICON[it.category] ?? ''}
+                    </span>
                   )}
-                </svg>
-              </div>
-              
-              <div className="muted mono" style={{ fontSize: 11, marginTop: 12 }}>
-                {selected.length === 0
-                  ? lang === 'ru'
-                    ? 'Выберите вещи ниже'
-                    : 'Select items below'
-                  : lang === 'ru'
-                    ? `${selected.length} из ${MAX_LAYERS} выбрано`
-                    : `${selected.length} of ${MAX_LAYERS} selected`}
-              </div>
-              
-              <div className="actions" style={{ marginTop: 16, marginBottom: 0 }}>
-                <button
-                  className="action-btn"
-                  style={{
-                    flex: 1,
-                    fontSize: 11,
-                    padding: '6px 8px',
-                    background: view === 'front' ? 'var(--accent-soft)' : 'var(--card)',
-                    color: view === 'front' ? 'var(--accent-deep)' : 'var(--ink)',
-                    borderColor: view === 'front' ? 'var(--accent)' : 'var(--hair)',
-                  }}
-                  onClick={() => setView('front')}
-                >
-                  {lang === 'ru' ? 'спереди' : 'front'}
-                </button>
-                <button
-                  className="action-btn"
-                  style={{
-                    flex: 1,
-                    fontSize: 11,
-                    padding: '6px 8px',
-                    background: view === 'back' ? 'var(--accent-soft)' : 'var(--card)',
-                    color: view === 'back' ? 'var(--accent-deep)' : 'var(--ink)',
-                    borderColor: view === 'back' ? 'var(--accent)' : 'var(--hair)',
-                  }}
-                  onClick={() => setView('back')}
-                >
-                  {lang === 'ru' ? 'сзади' : 'back'}
-                </button>
-              </div>
-            </div>
-          )
+                </div>
+              )
+            })}
+          </div>
         ) : (
-          <div style={{ width: '100%', textAlign: 'center' }}>
+          /* Режим фото */
+          <div style={{ position: 'relative', width: '100%', height: 320 }}>
             {photo ? (
-              <div>
+              <>
                 <img
                   src={photo}
                   alt="My photo"
-                  style={{ maxHeight: 240, maxWidth: '100%', objectFit: 'contain', borderRadius: 8 }}
+                  style={{ 
+                    width: '100%', 
+                    height: '100%', 
+                    objectFit: 'contain',
+                    borderRadius: 8,
+                  }}
                 />
-                <div className="muted mono" style={{ fontSize: 11, marginTop: 8 }}>
-                  {lang === 'ru' ? 'ваше фото' : 'your photo'}
-                </div>
-              </div>
+                {/* Наложение выбранных вещей на фото */}
+                {selected.map((it, idx) => {
+                  const pos = LAYER_POSITIONS[it.category] ?? LAYER_POSITIONS['tops']
+                  return (
+                    <div
+                      key={it.id}
+                      style={{
+                        position: 'absolute',
+                        top: pos.top,
+                        left: pos.left,
+                        width: pos.width,
+                        height: pos.height,
+                        zIndex: idx + 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      {it.image_url ? (
+                        <img 
+                          src={it.image_url} 
+                          alt={it.name}
+                          style={{ 
+                            maxWidth: '100%', 
+                            maxHeight: '100%', 
+                            objectFit: 'contain',
+                            filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))',
+                          }} 
+                        />
+                      ) : (
+                        <span style={{ fontSize: 48, opacity: 0.7 }}>
+                          {CATEGORY_ICON[it.category] ?? '👕'}
+                        </span>
+                      )}
+                    </div>
+                  )
+                })}
+              </>
             ) : (
               <label className="action-btn primary" style={{ cursor: 'pointer', display: 'inline-block' }}>
-                 {lang === 'ru' ? 'Загрузить фото' : 'Upload photo'}
+                📷 {lang === 'ru' ? 'Загрузить фото' : 'Upload photo'}
                 <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhoto} />
               </label>
             )}
@@ -362,17 +378,57 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
         )}
       </div>
 
+      {/* Переключатель спереди/сзади (только для манекена) */}
+      {mode === 'mannequin' && (
+        <div className="actions" style={{ marginBottom: 12 }}>
+          <button
+            className="action-btn"
+            style={{
+              flex: 1,
+              fontSize: 11,
+              padding: '6px 8px',
+              background: view === 'front' ? 'var(--accent-soft)' : 'var(--card)',
+              color: view === 'front' ? 'var(--accent-deep)' : 'var(--ink)',
+              borderColor: view === 'front' ? 'var(--accent)' : 'var(--hair)',
+            }}
+            onClick={() => {
+              setView('front')
+              setCompleted(false)
+            }}
+          >
+            {lang === 'ru' ? 'спереди' : 'front'}
+          </button>
+          <button
+            className="action-btn"
+            style={{
+              flex: 1,
+              fontSize: 11,
+              padding: '6px 8px',
+              background: view === 'back' ? 'var(--accent-soft)' : 'var(--card)',
+              color: view === 'back' ? 'var(--accent-deep)' : 'var(--ink)',
+              borderColor: view === 'back' ? 'var(--accent)' : 'var(--hair)',
+            }}
+            onClick={() => {
+              setView('back')
+              setCompleted(false)
+            }}
+          >
+            {lang === 'ru' ? 'сзади' : 'back'}
+          </button>
+        </div>
+      )}
+
       {/* Счётчик слоёв */}
       <div className="row" style={{ marginBottom: 10 }}>
         <span style={{ fontWeight: 700 }}>
-          {lang === 'ru' ? ' Примерочная' : '✳ Fitting room'}
+          {lang === 'ru' ? '✳ Примерочная' : ' Fitting room'}
         </span>
         <span className="muted mono">
           {selected.length} / {MAX_LAYERS} {lang === 'ru' ? 'слоёв' : 'layers'}
         </span>
       </div>
 
-      {/* Список вещей — ИСПРАВЛЕННЫЙ */}
+      {/* Список вещей */}
       <div className="muted mono" style={{ marginBottom: 8 }}>
         {lang === 'ru' ? 'Отметьте слои (до 5):' : 'Select layers (up to 5):'}
       </div>
@@ -394,7 +450,6 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
               onClick={() => toggleItem(it)}
             >
               <span style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1 }}>
-                {/* Мини-превью: фото или иконка категории */}
                 {it.image_url ? (
                   <img 
                     src={it.image_url} 
