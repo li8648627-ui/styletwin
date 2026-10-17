@@ -7,63 +7,63 @@ type Item = { id: string; name: string; category: string; color: string | null; 
 type ProReason = 'tryon_limit' | 'wardrobe_limit' | 'week_limit' | null
 
 const CATEGORY_ICON: Record<string, string> = {
-  tops: '',
+  tops: '👕',
   shirts: '👕',
-  blouses: '👚',
-  tshirts: '👕',
+  blouses: '',
+  tshirts: '',
   sweaters: '🧥',
   hoodies: '🧥',
   jackets: '🧥',
   coats: '🧥',
-  outerwear: '🧥',
-  bottoms: '',
-  pants: '',
-  jeans: '',
+  outerwear: '',
+  bottoms: '👖',
+  pants: '👖',
+  jeans: '👖',
   trousers: '',
   skirts: '👗',
   dresses: '👗',
   shoes: '👟',
-  sneakers: '👟',
+  sneakers: '',
   boots: '👢',
   sandals: '👡',
-  heels: '',
-  accessories: '👜',
+  heels: '👠',
+  accessories: '',
   bags: '👜',
-  hats: '',
+  hats: '🧢',
   scarves: '🧣',
   belts: '👔',
   jewelry: '💍',
-  other: '',
+  other: '🧺',
 }
 
-// Позиции для наложения вещей на манекен (в процентах от контейнера)
-const LAYER_POSITIONS: Record<string, { top: string; left: string; width: string; height: string }> = {
-  tops: { top: '25%', left: '20%', width: '60%', height: '35%' },
-  shirts: { top: '25%', left: '20%', width: '60%', height: '35%' },
-  blouses: { top: '25%', left: '20%', width: '60%', height: '35%' },
-  tshirts: { top: '25%', left: '20%', width: '60%', height: '35%' },
-  sweaters: { top: '25%', left: '18%', width: '64%', height: '38%' },
-  hoodies: { top: '22%', left: '18%', width: '64%', height: '40%' },
-  jackets: { top: '22%', left: '15%', width: '70%', height: '42%' },
-  coats: { top: '20%', left: '15%', width: '70%', height: '45%' },
-  outerwear: { top: '20%', left: '15%', width: '70%', height: '45%' },
-  bottoms: { top: '55%', left: '25%', width: '50%', height: '40%' },
-  pants: { top: '55%', left: '25%', width: '50%', height: '40%' },
-  jeans: { top: '55%', left: '25%', width: '50%', height: '40%' },
-  trousers: { top: '55%', left: '25%', width: '50%', height: '40%' },
-  skirts: { top: '55%', left: '22%', width: '56%', height: '35%' },
-  dresses: { top: '25%', left: '20%', width: '60%', height: '65%' },
-  shoes: { top: '88%', left: '25%', width: '50%', height: '12%' },
-  sneakers: { top: '88%', left: '25%', width: '50%', height: '12%' },
-  boots: { top: '80%', left: '25%', width: '50%', height: '20%' },
-  sandals: { top: '90%', left: '25%', width: '50%', height: '10%' },
-  heels: { top: '88%', left: '25%', width: '50%', height: '12%' },
-  accessories: { top: '15%', left: '30%', width: '40%', height: '15%' },
-  bags: { top: '60%', left: '65%', width: '25%', height: '25%' },
-  hats: { top: '5%', left: '30%', width: '40%', height: '15%' },
-  scarves: { top: '20%', left: '25%', width: '50%', height: '15%' },
-  belts: { top: '52%', left: '25%', width: '50%', height: '8%' },
-  jewelry: { top: '18%', left: '35%', width: '30%', height: '12%' },
+// Позиции для наложения (в пикселях от верхнего левого угла контейнера 320×320)
+const LAYER_POSITIONS: Record<string, { top: number; left: number; width: number; height: number }> = {
+  tops: { top: 80, left: 70, width: 180, height: 110 },
+  shirts: { top: 80, left: 70, width: 180, height: 110 },
+  blouses: { top: 80, left: 70, width: 180, height: 110 },
+  tshirts: { top: 80, left: 70, width: 180, height: 110 },
+  sweaters: { top: 75, left: 65, width: 190, height: 120 },
+  hoodies: { top: 70, left: 65, width: 190, height: 125 },
+  jackets: { top: 70, left: 60, width: 200, height: 130 },
+  coats: { top: 65, left: 60, width: 200, height: 140 },
+  outerwear: { top: 65, left: 60, width: 200, height: 140 },
+  bottoms: { top: 175, left: 80, width: 160, height: 130 },
+  pants: { top: 175, left: 80, width: 160, height: 130 },
+  jeans: { top: 175, left: 80, width: 160, height: 130 },
+  trousers: { top: 175, left: 80, width: 160, height: 130 },
+  skirts: { top: 175, left: 75, width: 170, height: 110 },
+  dresses: { top: 75, left: 70, width: 180, height: 220 },
+  shoes: { top: 280, left: 80, width: 160, height: 40 },
+  sneakers: { top: 280, left: 80, width: 160, height: 40 },
+  boots: { top: 255, left: 80, width: 160, height: 65 },
+  sandals: { top: 290, left: 80, width: 160, height: 30 },
+  heels: { top: 280, left: 80, width: 160, height: 40 },
+  accessories: { top: 50, left: 90, width: 140, height: 50 },
+  bags: { top: 190, left: 200, width: 80, height: 80 },
+  hats: { top: 15, left: 90, width: 140, height: 50 },
+  scarves: { top: 65, left: 80, width: 160, height: 50 },
+  belts: { top: 165, left: 80, width: 160, height: 25 },
+  jewelry: { top: 60, left: 110, width: 100, height: 40 },
 }
 
 const MAX_LAYERS = 5
@@ -78,7 +78,6 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
   const [photo, setPhoto] = useState<string | null>(null)
   const [tryonCount, setTryonCount] = useState(0)
   const [message, setMessage] = useState('')
-  const [completed, setCompleted] = useState(false)
 
   useEffect(() => {
     supabase
@@ -115,7 +114,6 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
       if (prev.length >= MAX_LAYERS) return prev
       return [...prev, it]
     })
-    setCompleted(false)
   }
 
   const tryOn = async () => {
@@ -160,14 +158,13 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
       }
 
       await trackEvent('first_tryon', { layers: selected.length })
-      setCompleted(true)
       setMessage(
         lang === 'ru'
           ? `✳ Образ готов! (${tryonCount + 1}/${TRYON_LIMIT})`
           : `✳ Look ready! (${tryonCount + 1}/${TRYON_LIMIT})`
       )
     } catch (err: any) {
-      setMessage(` ${err.message}`)
+      setMessage(`❌ ${err.message}`)
     }
   }
 
@@ -178,12 +175,9 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
     reader.onload = () => {
       setPhoto(reader.result as string)
       setMode('photo')
-      setCompleted(false)
     }
     reader.readAsDataURL(file)
   }
-
-  const completeness = Math.round((selected.length / MAX_LAYERS) * 100)
 
   return (
     <div>
@@ -203,10 +197,7 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
             background: mode === 'mannequin' ? 'var(--accent)' : 'var(--card)',
             color: mode === 'mannequin' ? '#fff' : 'var(--ink)',
           }}
-          onClick={() => {
-            setMode('mannequin')
-            setCompleted(false)
-          }}
+          onClick={() => setMode('mannequin')}
         >
           {lang === 'ru' ? 'Манекен' : 'Mannequin'}
         </button>
@@ -217,168 +208,152 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
             background: mode === 'photo' ? 'var(--accent)' : 'var(--card)',
             color: mode === 'photo' ? '#fff' : 'var(--ink)',
           }}
-          onClick={() => {
-            setMode('photo')
-            setCompleted(false)
-          }}
+          onClick={() => setMode('photo')}
         >
           {lang === 'ru' ? 'Моё фото' : 'My photo'}
         </button>
       </div>
 
-      {/* Область предпросмотра с наложением вещей */}
+      {/* Область предпросмотра — ИСПРАВЛЕННАЯ */}
       <div 
         className="card" 
         style={{ 
-          marginBottom: 14, 
-          minHeight: 320, 
+          marginBottom: 14,
+          padding: 0,
           position: 'relative',
+          width: '100%',
+          height: 320,
           overflow: 'hidden',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
         }}
       >
         {/* Базовый слой: манекен или фото */}
         {mode === 'mannequin' ? (
-          <div style={{ position: 'relative', width: '100%', height: 320 }}>
-            {/* SVG манекен */}
-            <svg 
-              width="100%" 
-              height="320" 
-              viewBox="0 0 200 320" 
-              style={{ position: 'absolute', top: 0, left: 0 }}
-            >
-              <defs>
-                <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#f0ebe3" />
-                  <stop offset="50%" stopColor="#f7f2ea" />
-                  <stop offset="100%" stopColor="#e8e0d5" />
-                </linearGradient>
-                <filter id="shadow3d">
-                  <feDropShadow dx="0" dy="4" stdDeviation="6" floodOpacity="0.12" />
-                </filter>
-              </defs>
-              
-              {view === 'front' ? (
-                <>
-                  <circle cx="100" cy="40" r="20" fill="url(#bodyGrad)" stroke="#d4c9b8" strokeWidth="2" filter="url(#shadow3d)" />
-                  <path d="M 60 80 Q 100 70 140 80 L 150 260 Q 100 275 50 260 Z" fill="url(#bodyGrad)" stroke="#d4c9b8" strokeWidth="2" filter="url(#shadow3d)" />
-                  <path d="M 60 90 L 35 170 Q 30 180 35 185 Q 42 190 48 175 L 68 115" fill="#f0ebe3" stroke="#d4c9b8" strokeWidth="2" />
-                  <path d="M 140 90 L 165 170 Q 170 180 165 185 Q 158 190 152 175 L 132 115" fill="#f0ebe3" stroke="#d4c9b8" strokeWidth="2" />
-                </>
-              ) : (
-                <>
-                  <circle cx="100" cy="40" r="20" fill="url(#bodyGrad)" stroke="#d4c9b8" strokeWidth="2" filter="url(#shadow3d)" />
-                  <path d="M 65 80 Q 100 75 135 80 L 145 260 Q 100 272 55 260 Z" fill="url(#bodyGrad)" stroke="#d4c9b8" strokeWidth="2" filter="url(#shadow3d)" />
-                  <path d="M 65 90 L 40 170 Q 35 180 40 185 Q 47 190 53 175 L 70 115" fill="#f0ebe3" stroke="#d4c9b8" strokeWidth="2" />
-                  <path d="M 135 90 L 160 170 Q 165 180 160 185 Q 153 190 147 175 L 130 115" fill="#f0ebe3" stroke="#d4c9b8" strokeWidth="2" />
-                </>
-              )}
-            </svg>
-
-            {/* Наложение выбранных вещей */}
-            {selected.map((it, idx) => {
-              const pos = LAYER_POSITIONS[it.category] ?? LAYER_POSITIONS['tops']
-              return (
-                <div
-                  key={it.id}
-                  style={{
-                    position: 'absolute',
-                    top: pos.top,
-                    left: pos.left,
-                    width: pos.width,
-                    height: pos.height,
-                    zIndex: idx + 1,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  {it.image_url ? (
-                    <img 
-                      src={it.image_url} 
-                      alt={it.name}
-                      style={{ 
-                        maxWidth: '100%', 
-                        maxHeight: '100%', 
-                        objectFit: 'contain',
-                        filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.15))',
-                      }} 
-                    />
-                  ) : (
-                    <span style={{ fontSize: 48, opacity: 0.7 }}>
-                      {CATEGORY_ICON[it.category] ?? ''}
-                    </span>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        ) : (
-          /* Режим фото */
-          <div style={{ position: 'relative', width: '100%', height: 320 }}>
-            {photo ? (
+          <svg 
+            width="100%" 
+            height="320" 
+            viewBox="0 0 320 320" 
+            style={{ position: 'absolute', top: 0, left: 0, zIndex: 0 }}
+          >
+            <defs>
+              <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#f0ebe3" />
+                <stop offset="50%" stopColor="#f7f2ea" />
+                <stop offset="100%" stopColor="#e8e0d5" />
+              </linearGradient>
+              <filter id="shadow3d">
+                <feDropShadow dx="0" dy="4" stdDeviation="6" floodOpacity="0.12" />
+              </filter>
+            </defs>
+            
+            {view === 'front' ? (
               <>
-                <img
-                  src={photo}
-                  alt="My photo"
-                  style={{ 
-                    width: '100%', 
-                    height: '100%', 
-                    objectFit: 'contain',
-                    borderRadius: 8,
-                  }}
-                />
-                {/* Наложение выбранных вещей на фото */}
-                {selected.map((it, idx) => {
-                  const pos = LAYER_POSITIONS[it.category] ?? LAYER_POSITIONS['tops']
-                  return (
-                    <div
-                      key={it.id}
-                      style={{
-                        position: 'absolute',
-                        top: pos.top,
-                        left: pos.left,
-                        width: pos.width,
-                        height: pos.height,
-                        zIndex: idx + 1,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      {it.image_url ? (
-                        <img 
-                          src={it.image_url} 
-                          alt={it.name}
-                          style={{ 
-                            maxWidth: '100%', 
-                            maxHeight: '100%', 
-                            objectFit: 'contain',
-                            filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))',
-                          }} 
-                        />
-                      ) : (
-                        <span style={{ fontSize: 48, opacity: 0.7 }}>
-                          {CATEGORY_ICON[it.category] ?? '👕'}
-                        </span>
-                      )}
-                    </div>
-                  )
-                })}
+                <circle cx="160" cy="50" r="28" fill="url(#bodyGrad)" stroke="#d4c9b8" strokeWidth="2" filter="url(#shadow3d)" />
+                <path d="M 110 100 Q 160 90 210 100 L 225 280 Q 160 295 95 280 Z" fill="url(#bodyGrad)" stroke="#d4c9b8" strokeWidth="2" filter="url(#shadow3d)" />
+                <path d="M 110 110 L 80 190 Q 75 200 80 205 Q 87 210 93 195 L 115 130" fill="#f0ebe3" stroke="#d4c9b8" strokeWidth="2" />
+                <path d="M 210 110 L 240 190 Q 245 200 240 205 Q 233 210 227 195 L 205 130" fill="#f0ebe3" stroke="#d4c9b8" strokeWidth="2" />
               </>
             ) : (
-              <label className="action-btn primary" style={{ cursor: 'pointer', display: 'inline-block' }}>
+              <>
+                <circle cx="160" cy="50" r="28" fill="url(#bodyGrad)" stroke="#d4c9b8" strokeWidth="2" filter="url(#shadow3d)" />
+                <path d="M 115 100 Q 160 95 205 100 L 220 280 Q 160 292 100 280 Z" fill="url(#bodyGrad)" stroke="#d4c9b8" strokeWidth="2" filter="url(#shadow3d)" />
+                <path d="M 115 110 L 85 190 Q 80 200 85 205 Q 92 210 98 195 L 118 130" fill="#f0ebe3" stroke="#d4c9b8" strokeWidth="2" />
+                <path d="M 205 110 L 235 190 Q 240 200 235 205 Q 228 210 222 195 L 202 130" fill="#f0ebe3" stroke="#d4c9b8" strokeWidth="2" />
+              </>
+            )}
+          </svg>
+        ) : (
+          /* Режим фото */
+          photo ? (
+            <img
+              src={photo}
+              alt="My photo"
+              style={{ 
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%', 
+                height: '100%', 
+                objectFit: 'contain',
+                zIndex: 0,
+              }}
+            />
+          ) : (
+            <div style={{ 
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 0,
+            }}>
+              <label className="action-btn primary" style={{ cursor: 'pointer' }}>
                 📷 {lang === 'ru' ? 'Загрузить фото' : 'Upload photo'}
                 <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhoto} />
               </label>
-            )}
-          </div>
+            </div>
+          )
         )}
+
+        {/* Наложение выбранных вещей — ИСПРАВЛЕННОЕ */}
+        {selected.map((it, idx) => {
+          const pos = LAYER_POSITIONS[it.category] ?? LAYER_POSITIONS['tops']
+          return (
+            <div
+              key={it.id}
+              style={{
+                position: 'absolute',
+                top: pos.top,
+                left: pos.left,
+                width: pos.width,
+                height: pos.height,
+                zIndex: idx + 10,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                pointerEvents: 'none',
+              }}
+            >
+              {it.image_url ? (
+                <img 
+                  src={it.image_url} 
+                  alt={it.name}
+                  style={{ 
+                    maxWidth: '100%', 
+                    maxHeight: '100%', 
+                    objectFit: 'contain',
+                    filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))',
+                  }} 
+                />
+              ) : (
+                <span style={{ fontSize: 64, opacity: 0.8 }}>
+                  {CATEGORY_ICON[it.category] ?? '👕'}
+                </span>
+              )}
+            </div>
+          )
+        })}
+
+        {/* Подпись снизу */}
+        <div style={{
+          position: 'absolute',
+          bottom: 12,
+          left: 0,
+          right: 0,
+          textAlign: 'center',
+          zIndex: 20,
+        }}>
+          <div className="muted mono" style={{ fontSize: 11 }}>
+            {selected.length === 0
+              ? lang === 'ru' ? 'Выберите вещи ниже' : 'Select items below'
+              : `${selected.length} из ${MAX_LAYERS} выбрано`}
+          </div>
+        </div>
       </div>
 
-      {/* Переключатель спереди/сзади (только для манекена) */}
+      {/* Переключатель спереди/сзади */}
       {mode === 'mannequin' && (
         <div className="actions" style={{ marginBottom: 12 }}>
           <button
@@ -391,10 +366,7 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
               color: view === 'front' ? 'var(--accent-deep)' : 'var(--ink)',
               borderColor: view === 'front' ? 'var(--accent)' : 'var(--hair)',
             }}
-            onClick={() => {
-              setView('front')
-              setCompleted(false)
-            }}
+            onClick={() => setView('front')}
           >
             {lang === 'ru' ? 'спереди' : 'front'}
           </button>
@@ -408,10 +380,7 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
               color: view === 'back' ? 'var(--accent-deep)' : 'var(--ink)',
               borderColor: view === 'back' ? 'var(--accent)' : 'var(--hair)',
             }}
-            onClick={() => {
-              setView('back')
-              setCompleted(false)
-            }}
+            onClick={() => setView('back')}
           >
             {lang === 'ru' ? 'сзади' : 'back'}
           </button>
@@ -421,7 +390,7 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
       {/* Счётчик слоёв */}
       <div className="row" style={{ marginBottom: 10 }}>
         <span style={{ fontWeight: 700 }}>
-          {lang === 'ru' ? '✳ Примерочная' : ' Fitting room'}
+          {lang === 'ru' ? '✳ Примерочная' : '✳ Fitting room'}
         </span>
         <span className="muted mono">
           {selected.length} / {MAX_LAYERS} {lang === 'ru' ? 'слоёв' : 'layers'}
@@ -435,7 +404,7 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14 }}>
         {items.map((it) => {
           const isSelected = selected.some((x) => x.id === it.id)
-          const icon = CATEGORY_ICON[it.category] ?? ''
+          const icon = CATEGORY_ICON[it.category] ?? '🧺'
           return (
             <div
               key={it.id}
@@ -463,14 +432,7 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
                     }} 
                   />
                 ) : (
-                  <span style={{ 
-                    fontSize: 24, 
-                    width: 32, 
-                    height: 32, 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center' 
-                  }}>
+                  <span style={{ fontSize: 24, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {icon}
                   </span>
                 )}
