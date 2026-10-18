@@ -58,7 +58,6 @@ const COLOR_HEX: Record<string, string> = {
   бежевый: '#d8c8a8', коричневый: '#8f6f4d', серый: '#9c9c98',
 }
 
-/* Порядок отрисовки: низ → верх → верхняя одежда → обувь → аксессуар */
 const DRAW_ORDER: Record<string, number> = {
   dresses: 1, skirts: 2, bottoms: 2, pants: 2, jeans: 2, trousers: 2,
   tops: 3, shirts: 3, blouses: 3, tshirts: 3, sweaters: 4, hoodies: 4,
@@ -69,67 +68,62 @@ const DRAW_ORDER: Record<string, number> = {
 const MAX_LAYERS = 5
 const TRYON_LIMIT = 3
 
-/* Формы одежды, повторяющие силуэт манекена (viewBox 320×320) */
+/* Формы одежды, сидящие на человеческой фигуре (viewBox 320×320) */
 function GarmentShape({ category }: { category: string }) {
   switch (category) {
     case 'tops': case 'shirts': case 'blouses': case 'tshirts': case 'sweaters': case 'hoodies':
       return (
         <>
-          <path d="M 104 96 Q 160 86 216 96 L 224 196 Q 160 208 96 196 Z" />
-          <path d="M 104 100 L 84 160 Q 82 168 90 170 L 108 128 Z" />
-          <path d="M 216 100 L 236 160 Q 238 168 230 170 L 212 128 Z" />
+          <path d="M 114 80 Q 160 72 206 80 L 200 182 Q 160 191 120 182 Z" />
+          <path d="M 116 86 L 92 172 Q 89 180 96 183 Q 103 185 106 176 L 124 100 Z" />
+          <path d="M 204 86 L 228 172 Q 231 180 224 183 Q 217 185 214 176 L 196 100 Z" />
         </>
       )
     case 'jackets': case 'coats': case 'outerwear':
       return (
         <>
-          <path d="M 102 94 Q 160 84 218 94 L 230 240 Q 160 252 90 240 Z" />
-          <path d="M 102 98 L 80 165 Q 78 173 86 175 L 106 130 Z" />
-          <path d="M 218 98 L 240 165 Q 242 173 234 175 L 214 130 Z" />
+          <path d="M 112 78 Q 160 70 208 78 L 212 226 Q 160 236 108 226 Z" />
+          <path d="M 114 84 L 90 172 Q 87 180 94 183 Q 101 185 104 176 L 122 98 Z" />
+          <path d="M 206 84 L 230 172 Q 233 180 226 183 Q 219 185 216 176 L 198 98 Z" />
         </>
       )
     case 'bottoms': case 'pants': case 'jeans': case 'trousers':
-      return (
-        <>
-          <path d="M 116 186 L 158 186 L 150 292 L 122 292 Z" />
-          <path d="M 162 186 L 204 186 L 198 292 L 170 292 Z" />
-        </>
-      )
+      return <path d="M 126 174 L 194 174 L 190 290 L 166 290 L 162 202 L 158 202 L 154 290 L 130 290 Z" />
     case 'skirts':
-      return <path d="M 112 178 L 208 178 L 228 252 Q 160 266 92 252 Z" />
+      return <path d="M 122 174 L 198 174 L 216 238 Q 160 250 104 238 Z" />
     case 'dresses':
-      return <path d="M 104 96 Q 160 86 216 96 L 238 272 Q 160 288 82 272 Z" />
+      return <path d="M 114 80 Q 160 72 206 80 L 220 246 Q 160 258 100 246 Z" />
     case 'shoes': case 'sneakers': case 'sandals': case 'heels':
       return (
         <>
-          <ellipse cx="138" cy="296" rx="17" ry="8" />
-          <ellipse cx="182" cy="296" rx="17" ry="8" />
+          <ellipse cx="141" cy="292" rx="16" ry="7" />
+          <ellipse cx="179" cy="292" rx="16" ry="7" />
         </>
       )
     case 'boots':
       return (
         <>
-          <path d="M 126 262 h 24 v 30 q 0 6 -6 6 h -12 q -6 0 -6 -6 Z" />
-          <path d="M 170 262 h 24 v 30 q 0 6 -6 6 h -12 q -6 0 -6 -6 Z" />
+          <path d="M 128 246 h 26 v 42 q 0 6 -6 6 h -14 q -6 0 -6 -6 Z" />
+          <path d="M 166 246 h 26 v 42 q 0 6 -6 6 h -14 q -6 0 -6 -6 Z" />
         </>
       )
     case 'hats':
-      return <path d="M 130 44 Q 160 14 190 44 L 190 54 Q 160 42 130 54 Z" />
+      return <path d="M 134 36 Q 160 10 186 36 L 186 46 Q 160 34 134 46 Z" />
     case 'scarves':
-      return <path d="M 132 88 Q 160 102 188 88 L 188 106 Q 160 120 132 106 Z" />
+      return <path d="M 138 76 Q 160 88 182 76 L 182 92 Q 160 104 138 92 Z" />
     case 'belts':
-      return <rect x="110" y="180" width="100" height="12" rx="5" />
+      return <rect x="122" y="170" width="76" height="11" rx="5" />
     case 'bags': case 'accessories':
       return (
         <>
-          <path d="M 208 118 L 240 178" strokeWidth="4" fill="none" stroke="#8f6f4d" />
-          <rect x="226" y="176" width="36" height="42" rx="7" />
+          <path d="M 200 100 L 232 168" strokeWidth="4" fill="none" stroke="#8f6f4d" />
+          <rect x="222" y="166" width="34" height="40" rx="7" />
         </>
       )
     case 'jewelry':
-      return <circle cx="160" cy="112" r="9" />
+      return <circle cx="160" cy="98" r="8" />
     default:
-      return <path d="M 104 96 Q 160 86 216 96 L 224 196 Q 160 208 96 196 Z" />
+      return <path d="M 114 80 Q 160 72 206 80 L 200 182 Q 160 191 120 182 Z" />
   }
 }
 
@@ -195,7 +189,7 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
     setAiResult(null)
   }
 
-  /* ---------- DRAG & DROP (только режим фото) ---------- */
+  /* ---------- DRAG & DROP (режим фото) ---------- */
   const handleDragStart = (itemId: string, e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault()
     setDragging(itemId)
@@ -230,7 +224,6 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
     }
   }, [dragging, selected])
 
-  /* ---------- Счётчик ---------- */
   const bumpCounter = async () => {
     const { data: userData } = await supabase.auth.getUser()
     if (!userData.user) return
@@ -367,7 +360,7 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
         ) : aiResult ? (
           <img src={aiResult} alt="AI try-on" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
         ) : mode === 'mannequin' ? (
-          /* МАНЕКЕН + ОДЕЖДА ПО ФИГУРЕ */
+          /* ЧЕЛОВЕЧЕСКАЯ ФИГУРА + ОДЕЖДА ПО ФИГУРЕ */
           <svg width="100%" height="320" viewBox="0 0 320 320" style={{ position: 'absolute', top: 0, left: 0, zIndex: 0 }}>
             <defs>
               <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -384,11 +377,16 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
               )}
             </defs>
 
-            {/* Тело */}
-            <circle cx="160" cy="50" r="28" fill="url(#bodyGrad)" stroke="#d4c9b8" strokeWidth="2" />
-            <path d="M 110 100 Q 160 90 210 100 L 225 280 Q 160 295 95 280 Z" fill="url(#bodyGrad)" stroke="#d4c9b8" strokeWidth="2" />
-            <path d="M 110 110 L 80 190 Q 75 200 80 205 Q 87 210 93 195 L 115 130" fill="#f0ebe3" stroke="#d4c9b8" strokeWidth="2" />
-            <path d="M 210 110 L 240 190 Q 245 200 240 205 Q 233 210 227 195 L 205 130" fill="#f0ebe3" stroke="#d4c9b8" strokeWidth="2" />
+            {/* Фигура: голова, шея, торс, руки, НОГИ, стопы */}
+            <circle cx="160" cy="45" r="26" fill="url(#bodyGrad)" stroke="#d4c9b8" strokeWidth="2" />
+            <rect x="152" y="66" width="16" height="16" rx="6" fill="url(#bodyGrad)" stroke="#d4c9b8" strokeWidth="1.5" />
+            <path d="M 118 84 Q 160 76 202 84 L 196 178 Q 160 186 124 178 Z" fill="url(#bodyGrad)" stroke="#d4c9b8" strokeWidth="2" />
+            <path d="M 118 90 L 96 170 Q 93 178 99 181 Q 105 183 108 175 L 126 105 Z" fill="#f0ebe3" stroke="#d4c9b8" strokeWidth="2" />
+            <path d="M 202 90 L 224 170 Q 227 178 221 181 Q 215 183 212 175 L 194 105 Z" fill="#f0ebe3" stroke="#d4c9b8" strokeWidth="2" />
+            <path d="M 132 180 L 154 180 L 150 288 L 134 288 Z" fill="url(#bodyGrad)" stroke="#d4c9b8" strokeWidth="2" />
+            <path d="M 166 180 L 188 180 L 186 288 L 170 288 Z" fill="url(#bodyGrad)" stroke="#d4c9b8" strokeWidth="2" />
+            <ellipse cx="141" cy="292" rx="14" ry="6" fill="#f0ebe3" stroke="#d4c9b8" strokeWidth="1.5" />
+            <ellipse cx="179" cy="292" rx="14" ry="6" fill="#f0ebe3" stroke="#d4c9b8" strokeWidth="1.5" />
 
             {/* Одежда по фигуре */}
             {sortedSelected.map((it) => {
