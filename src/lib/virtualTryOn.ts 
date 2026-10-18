@@ -8,9 +8,6 @@ export interface TryOnResult {
 
 /**
  * AI-примерка через Fal.ai (модель IDM-VTON)
- * @param personImage - фото пользователя (base64 или URL)
- * @param garmentImage - фото вещи с прозрачным фоном (base64 или URL)
- * @returns URL изображения с надетой вещью
  */
 export async function virtualTryOn(
   personImage: string,
@@ -19,7 +16,7 @@ export async function virtualTryOn(
   if (!FAL_API_KEY) {
     return {
       success: false,
-      error: 'API ключ Fal.ai не настроен. Добавьте VITE_FAL_API_KEY в .env файл.',
+      error: 'API ключ Fal.ai не настроен. Добавьте VITE_FAL_API_KEY в .env',
     }
   }
 
@@ -43,42 +40,15 @@ export async function virtualTryOn(
     }
 
     const data = await response.json()
-    
-    // Fal.ai возвращает результат в data.output.image.url
     const imageUrl = data.output?.image?.url || data.image?.url
-    
+
     if (!imageUrl) {
       throw new Error('AI не вернул изображение')
     }
 
-    return {
-      success: true,
-      imageUrl,
-    }
+    return { success: true, imageUrl }
   } catch (error: any) {
     console.error('Virtual try-on error:', error)
-    return {
-      success: false,
-      error: error.message || 'Ошибка AI-примерки',
-    }
-  }
-}
-
-/**
- * Проверка доступности AI-сервиса
- */
-export async function checkAIAvailability(): Promise<boolean> {
-  if (!FAL_API_KEY) return false
-  
-  try {
-    const response = await fetch('https://fal.run/fal-ai/idm-vton', {
-      method: 'HEAD',
-      headers: {
-        Authorization: `Key ${FAL_API_KEY}`,
-      },
-    })
-    return response.status !== 401
-  } catch {
-    return false
+    return { success: false, error: error.message || 'Ошибка AI-примерки' }
   }
 }

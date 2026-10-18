@@ -6,24 +6,64 @@ import { trackEvent } from '../lib/analytics'
 type Item = { id: string; name: string; category: string; color: string | null; image_url: string | null }
 type ProReason = 'tryon_limit' | 'wardrobe_limit' | 'week_limit' | null
 
+/* ---------- AI-примерка (встроено, без внешних файлов) ---------- */
+const FAL_API_KEY = (import.meta as any).env?.VITE_FAL_API_KEY
+
+interface TryOnResult {
+  success: boolean
+  imageUrl?: string
+  error?: string
+}
+
+async function virtualTryOn(personImage: string, garmentImage: string): Promise<TryOnResult> {
+  if (!FAL_API_KEY) {
+    return { success: false, error: 'API ключ Fal.ai не настроен. Добавьте VITE_FAL_API_KEY в .env' }
+  }
+  try {
+    const response = await fetch('https://fal.run/fal-ai/idm-vton', {
+      method: 'POST',
+      headers: {
+        Authorization: `Key ${FAL_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        person_image: personImage,
+        garment_image: garmentImage,
+        garment_description: '',
+      }),
+    })
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(errorData.detail || `HTTP ${response.status}`)
+    }
+    const data = await response.json()
+    const imageUrl = data.output?.image?.url || data.image?.url
+    if (!imageUrl) throw new Error('AI не вернул изображение')
+    return { success: true, imageUrl }
+  } catch (error: any) {
+    console.error('Virtual try-on error:', error)
+    return { success: false, error: error.message || 'Ошибка AI-примерки' }
+  }
+}
+
 const CATEGORY_ICON: Record<string, string> = {
   tops: '👕',
   shirts: '👕',
-  blouses: '',
-  tshirts: '',
+  blouses: '👚',
+  tshirts: '👕',
   sweaters: '🧥',
   hoodies: '🧥',
   jackets: '🧥',
   coats: '🧥',
-  outerwear: '',
+  outerwear: '🧥',
   bottoms: '👖',
   pants: '👖',
   jeans: '👖',
-  trousers: '',
+  trousers: '👖',
   skirts: '👗',
   dresses: '👗',
   shoes: '👟',
-  sneakers: '',
+  sneakers: '👟',
   boots: '👢',
   sandals: '👡',
   heels: '👠',
@@ -79,7 +119,11 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
   const [tryonCount, setTryonCount] = useState(0)
   const [message, setMessage] = useState('')
   const [dragging, setDragging] = useState<string | null>(null)
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [aiResult, setAiResult] = useState<string | null>(null)
   const previewRef = useRef<HTMLDivElement>(null)
+
+  const isBack = view === 'back'
 
   useEffect(() => {
     supabase
@@ -123,8 +167,10 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
       if (prev.length >= MAX_LAYERS) return prev
       return [...prev, it]
     })
+    setAiResult(null)
   }
 
+  /* ---------- DRAG & DROP с учётом поворота ---------- */
   const handleDragStart = (itemId: string, e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault()
     setDragging(itemId)
@@ -132,23 +178,26 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
 
   const handleDragMove = (e: MouseEvent | TouchEvent) => {
     if (!dragging || !previewRef.current) return
-    
     const rect = previewRef.current.getBoundingClientRect()
     const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
     const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
-    
-    const x = ((clientX - rect.left) / rect.width) * 100
-    const y = ((clientY - rect.top) / rect.height) * 100
-    
-    setPositions((prev) => ({
-      ...prev,
-      [dragging]: { x, y },
-    }))
+    const rawX = ((clientX - rect.left) / rect.width) * 100
+    const rawY = ((clientY - rect.top) / rect.height) * 100
+
+    const it = selected.find((s) => s.id === dragging)
+    const config = LAYER_CONFIG[it?.category ?? 'tops'] ?? LAYER_CONFIG['tops']
+    const w = parseFloat(config.width)
+    const h = parseFloat(config.height)
+
+    let x = isBack ? 100 - rawX - w / 2 : rawX - w / 2
+    let y = rawY - h / 2
+    x = Math.max(0, Math.min(100 - w, x))
+    y = Math.max(0, Math.min(100 - h, y))
+
+    setPositions((prev) => ({ ...prev, [dragging]: { x, y } }))
   }
 
-  const handleDragEnd = () => {
-    setDragging(null)
-  }
+  const handleDragEnd = () => setDragging(null)
 
   useEffect(() => {
     if (dragging) {
@@ -156,7 +205,6 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
       window.addEventListener('mouseup', handleDragEnd)
       window.addEventListener('touchmove', handleDragMove)
       window.addEventListener('touchend', handleDragEnd)
-      
       return () => {
         window.removeEventListener('mousemove', handleDragMove)
         window.removeEventListener('mouseup', handleDragEnd)
@@ -164,8 +212,41 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
         window.removeEventListener('touchend', handleDragEnd)
       }
     }
-  }, [dragging])
+  }, [dragging, isBack, selected])
 
+  /* ---------- Счётчик примерок ---------- */
+  const bumpCounter = async () => {
+    const { data: userData } = await supabase.auth.getUser()
+    if (!userData.user) return
+    const { data: usageData } = await supabase
+      .from('usage')
+      .select('id, tryons_this_month, month_start')
+      .eq('user_id', userData.user.id)
+      .single()
+    const now = new Date()
+    const monthStart = usageData?.month_start
+      ? new Date(usageData.month_start)
+      : new Date(now.getFullYear(), now.getMonth(), 1)
+    const isNewMonth =
+      now.getMonth() !== monthStart.getMonth() ||
+      now.getFullYear() !== monthStart.getFullYear()
+    if (isNewMonth || !usageData) {
+      await supabase.from('usage').upsert({
+        user_id: userData.user.id,
+        tryons_this_month: 1,
+        month_start: now.toISOString(),
+      })
+      setTryonCount(1)
+    } else {
+      await supabase
+        .from('usage')
+        .update({ tryons_this_month: usageData.tryons_this_month + 1 })
+        .eq('id', usageData.id)
+      setTryonCount(usageData.tryons_this_month + 1)
+    }
+  }
+
+  /* ---------- Примерка: AI для фото, CSS для манекена ---------- */
   const tryOn = async () => {
     if (selected.length === 0) {
       setMessage(lang === 'ru' ? 'Выберите хотя бы одну вещь' : 'Select at least one item')
@@ -176,46 +257,37 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
       return
     }
     setMessage('')
-    try {
-      const { data: userData, error: userError } = await supabase.auth.getUser()
-      if (userError || !userData.user) throw userError
 
-      const { data: usageData } = await supabase
-        .from('usage')
-        .select('id, tryons_this_month, month_start')
-        .eq('user_id', userData.user.id)
-        .single()
-
-      const now = new Date()
-      const monthStart = usageData?.month_start ? new Date(usageData.month_start) : new Date(now.getFullYear(), now.getMonth(), 1)
-      const isNewMonth =
-        now.getMonth() !== monthStart.getMonth() ||
-        now.getFullYear() !== monthStart.getFullYear()
-
-      if (isNewMonth || !usageData) {
-        await supabase.from('usage').upsert({
-          user_id: userData.user.id,
-          tryons_this_month: 1,
-          month_start: now.toISOString(),
-        })
-        setTryonCount(1)
-      } else {
-        await supabase
-          .from('usage')
-          .update({ tryons_this_month: usageData.tryons_this_month + 1 })
-          .eq('id', usageData.id)
-        setTryonCount(usageData.tryons_this_month + 1)
+    if (mode === 'photo' && photo) {
+      const garment = selected.find((s) => s.image_url)
+      if (garment) {
+        setIsProcessing(true)
+        setAiResult(null)
+        const res = await virtualTryOn(photo, garment.image_url!)
+        setIsProcessing(false)
+        if (res.success && res.imageUrl) {
+          setAiResult(res.imageUrl)
+          await bumpCounter()
+          await trackEvent('first_tryon', { layers: selected.length, ai: true })
+          setMessage(
+            lang === 'ru'
+              ? `✳ AI-примерка готова! (${tryonCount + 1}/${TRYON_LIMIT})`
+              : `✳ AI try-on ready! (${tryonCount + 1}/${TRYON_LIMIT})`
+          )
+          return
+        }
+        setMessage(`❌ ${res.error ?? (lang === 'ru' ? 'Ошибка AI' : 'AI error')}`)
+        return
       }
-
-      await trackEvent('first_tryon', { layers: selected.length })
-      setMessage(
-        lang === 'ru'
-          ? `✳ Образ готов! (${tryonCount + 1}/${TRYON_LIMIT})`
-          : `✳ Look ready! (${tryonCount + 1}/${TRYON_LIMIT})`
-      )
-    } catch (err: any) {
-      setMessage(`❌ ${err.message}`)
     }
+
+    await bumpCounter()
+    await trackEvent('first_tryon', { layers: selected.length, ai: false })
+    setMessage(
+      lang === 'ru'
+        ? `✳ Образ готов! (${tryonCount + 1}/${TRYON_LIMIT})`
+        : `✳ Look ready! (${tryonCount + 1}/${TRYON_LIMIT})`
+    )
   }
 
   const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -225,6 +297,7 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
     reader.onload = () => {
       setPhoto(reader.result as string)
       setMode('photo')
+      setAiResult(null)
     }
     reader.readAsDataURL(file)
   }
@@ -234,11 +307,10 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
       <h1 className="screen-title">{lang === 'ru' ? 'Примерка' : 'Try-On'}</h1>
       <div className="muted mono" style={{ marginBottom: 14 }}>
         {lang === 'ru'
-          ? 'Перетаскивайте вещи по манекену'
-          : 'Drag items on the mannequin'}
+          ? 'Перетаскивайте вещи · они поворачиваются с манекеном.'
+          : 'Drag items · they rotate with the mannequin.'}
       </div>
 
-      {/* Переключатель режимов */}
       <div className="actions" style={{ marginBottom: 12 }}>
         <button
           className="action-btn"
@@ -247,7 +319,10 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
             background: mode === 'mannequin' ? 'var(--accent)' : 'var(--card)',
             color: mode === 'mannequin' ? '#fff' : 'var(--ink)',
           }}
-          onClick={() => setMode('mannequin')}
+          onClick={() => {
+            setMode('mannequin')
+            setAiResult(null)
+          }}
         >
           {lang === 'ru' ? 'Манекен' : 'Mannequin'}
         </button>
@@ -258,17 +333,19 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
             background: mode === 'photo' ? 'var(--accent)' : 'var(--card)',
             color: mode === 'photo' ? '#fff' : 'var(--ink)',
           }}
-          onClick={() => setMode('photo')}
+          onClick={() => {
+            setMode('photo')
+            setAiResult(null)
+          }}
         >
           {lang === 'ru' ? 'Моё фото' : 'My photo'}
         </button>
       </div>
 
-      {/* Область предпросмотра с drag & drop */}
-      <div 
+      <div
         ref={previewRef}
-        className="card" 
-        style={{ 
+        className="card"
+        style={{
           marginBottom: 14,
           padding: 0,
           position: 'relative',
@@ -278,14 +355,18 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
           cursor: dragging ? 'grabbing' : 'default',
         }}
       >
-        {/* Базовый слой: манекен или фото */}
-        {mode === 'mannequin' ? (
-          <svg 
-            width="100%" 
-            height="320" 
-            viewBox="0 0 320 320" 
-            style={{ position: 'absolute', top: 0, left: 0, zIndex: 0 }}
-          >
+        {isProcessing ? (
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.9)', zIndex: 100 }}>
+            <div style={{ width: 48, height: 48, border: '4px solid var(--hair)', borderTop: '4px solid var(--accent)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+            <div className="muted mono" style={{ marginTop: 16, fontSize: 13 }}>
+              {lang === 'ru' ? 'AI надевает одежду...' : 'AI is dressing you...'}
+            </div>
+            <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+          </div>
+        ) : aiResult ? (
+          <img src={aiResult} alt="AI try-on" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+        ) : mode === 'mannequin' ? (
+          <svg width="100%" height="320" viewBox="0 0 320 320" style={{ position: 'absolute', top: 0, left: 0, zIndex: 0 }}>
             <defs>
               <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="100%" y2="0%">
                 <stop offset="0%" stopColor="#f0ebe3" />
@@ -296,7 +377,6 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
                 <feDropShadow dx="0" dy="4" stdDeviation="6" floodOpacity="0.12" />
               </filter>
             </defs>
-            
             {view === 'front' ? (
               <>
                 <circle cx="160" cy="50" r="28" fill="url(#bodyGrad)" stroke="#d4c9b8" strokeWidth="2" filter="url(#shadow3d)" />
@@ -314,31 +394,9 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
             )}
           </svg>
         ) : photo ? (
-          <img
-            src={photo}
-            alt="My photo"
-            style={{ 
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%', 
-              height: '100%', 
-              objectFit: 'contain',
-              zIndex: 0,
-            }}
-          />
+          <img src={photo} alt="My photo" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'contain', zIndex: 0 }} />
         ) : (
-          <div style={{ 
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 0,
-          }}>
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 0 }}>
             <label className="action-btn primary" style={{ cursor: 'pointer' }}>
               📷 {lang === 'ru' ? 'Загрузить фото' : 'Upload photo'}
               <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhoto} />
@@ -346,78 +404,66 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
           </div>
         )}
 
-        {/* Перетаскиваемые вещи */}
-        {selected.map((it, idx) => {
-          const config = LAYER_CONFIG[it.category] ?? LAYER_CONFIG['tops']
-          const pos = positions[it.id] ?? { x: parseFloat(config.left), y: parseFloat(config.top) }
-          
-          return (
-            <div
-              key={it.id}
-              style={{
-                position: 'absolute',
-                top: `${pos.y}%`,
-                left: `${pos.x}%`,
-                width: config.width,
-                height: config.height,
-                zIndex: dragging === it.id ? 100 : idx + 10,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'grab',
-                userSelect: 'none',
-                touchAction: 'none',
-                transition: dragging === it.id ? 'none' : 'all 0.2s ease',
-              }}
-              onMouseDown={(e) => handleDragStart(it.id, e)}
-              onTouchStart={(e) => handleDragStart(it.id, e)}
-            >
-              {it.image_url ? (
-                <img 
-                  src={it.image_url} 
-                  alt={it.name}
-                  style={{ 
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'contain',
-                    filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))',
-                    pointerEvents: 'none',
-                  }} 
-                />
-              ) : (
-                <span style={{ 
-                  fontSize: config.emojiSize,
-                  opacity: 0.85,
-                  lineHeight: 1,
-                  pointerEvents: 'none',
-                }}>
-                  {CATEGORY_ICON[it.category] ?? '👕'}
-                </span>
-              )}
-            </div>
-          )
-        })}
+        {!aiResult &&
+          selected.map((it, idx) => {
+            const config = LAYER_CONFIG[it.category] ?? LAYER_CONFIG['tops']
+            const w = parseFloat(config.width)
+            const pos = positions[it.id] ?? { x: parseFloat(config.left), y: parseFloat(config.top) }
+            const left = isBack ? 100 - pos.x - w : pos.x
+            return (
+              <div
+                key={it.id}
+                style={{
+                  position: 'absolute',
+                  top: `${pos.y}%`,
+                  left: `${left}%`,
+                  width: config.width,
+                  height: config.height,
+                  zIndex: dragging === it.id ? 100 : idx + 10,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'grab',
+                  userSelect: 'none',
+                  touchAction: 'none',
+                  transform: isBack ? 'scaleX(-1)' : 'none',
+                }}
+                onMouseDown={(e) => handleDragStart(it.id, e)}
+                onTouchStart={(e) => handleDragStart(it.id, e)}
+              >
+                {it.image_url ? (
+                  <img
+                    src={it.image_url}
+                    alt={it.name}
+                    style={{ width: '100%', height: '100%', objectFit: 'contain', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))', pointerEvents: 'none' }}
+                  />
+                ) : (
+                  <span style={{ fontSize: config.emojiSize, opacity: 0.85, lineHeight: 1, pointerEvents: 'none' }}>
+                    {CATEGORY_ICON[it.category] ?? '👕'}
+                  </span>
+                )}
+              </div>
+            )
+          })}
 
-        {/* Подпись */}
-        <div style={{
-          position: 'absolute',
-          bottom: 12,
-          left: 0,
-          right: 0,
-          textAlign: 'center',
-          zIndex: 20,
-          pointerEvents: 'none',
-        }}>
+        <div style={{ position: 'absolute', bottom: 12, left: 0, right: 0, textAlign: 'center', zIndex: 20, pointerEvents: 'none' }}>
           <div className="muted mono" style={{ fontSize: 11, background: 'rgba(255,255,255,0.9)', padding: '4px 12px', borderRadius: 12, display: 'inline-block' }}>
-            {selected.length === 0
-              ? lang === 'ru' ? 'Выберите вещи ниже' : 'Select items below'
-              : `${selected.length} из ${MAX_LAYERS} выбрано`}
+            {aiResult
+              ? lang === 'ru' ? 'AI-примерка' : 'AI try-on'
+              : selected.length === 0
+                ? lang === 'ru' ? 'Выберите вещи ниже' : 'Select items below'
+                : `${selected.length} из ${MAX_LAYERS} выбрано`}
           </div>
         </div>
       </div>
 
-      {/* Переключатель спереди/сзади */}
-      {mode === 'mannequin' && (
+      {aiResult && (
+        <button className="action-btn" style={{ width: '100%', marginBottom: 12 }} onClick={() => setAiResult(null)}>
+          {lang === 'ru' ? '🔄 Попробовать другую вещь' : '🔄 Try another item'}
+        </button>
+      )}
+
+      {mode === 'mannequin' && !aiResult && (
         <div className="actions" style={{ marginBottom: 12 }}>
           <button
             className="action-btn"
@@ -450,17 +496,12 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
         </div>
       )}
 
-      {/* Счётчик слоёв */}
       <div className="row" style={{ marginBottom: 10 }}>
-        <span style={{ fontWeight: 700 }}>
-          {lang === 'ru' ? '✳ Примерочная' : '✳ Fitting room'}
-        </span>
+        <span style={{ fontWeight: 700 }}>{lang === 'ru' ? '✳ Примерочная' : '✳ Fitting room'}</span>
         <span className="muted mono">
           {selected.length} / {MAX_LAYERS} {lang === 'ru' ? 'слоёв' : 'layers'}
         </span>
       </div>
-
-      {/* Список вещей (без слайдера) */}
       <div className="muted mono" style={{ marginBottom: 8 }}>
         {lang === 'ru' ? 'Отметьте слои (до 5):' : 'Select layers (up to 5):'}
       </div>
@@ -483,45 +524,25 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
             >
               <span style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1 }}>
                 {it.image_url ? (
-                  <img 
-                    src={it.image_url} 
-                    alt="" 
-                    style={{ 
-                      width: 32, 
-                      height: 32, 
-                      objectFit: 'cover', 
-                      borderRadius: 6,
-                      border: '1px solid var(--hair)',
-                    }} 
-                  />
+                  <img src={it.image_url} alt="" style={{ width: 32, height: 32, objectFit: 'cover', borderRadius: 6, border: '1px solid var(--hair)' }} />
                 ) : (
-                  <span style={{ fontSize: 24, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {icon}
-                  </span>
+                  <span style={{ fontSize: 24, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{icon}</span>
                 )}
                 <span style={{ fontWeight: 600, fontSize: 13 }}>
                   {it.name}
                   {it.color && <span style={{ color: 'var(--muted)', fontWeight: 500, marginLeft: 4 }}>· {it.color}</span>}
                 </span>
               </span>
-              <input
-                type="checkbox"
-                checked={isSelected}
-                onChange={() => {}}
-                style={{ pointerEvents: 'none', width: 18, height: 18, accentColor: 'var(--accent)' }}
-              />
+              <input type="checkbox" checked={isSelected} onChange={() => {}} style={{ pointerEvents: 'none', width: 18, height: 18, accentColor: 'var(--accent)' }} />
             </div>
           )
         })}
       </div>
 
-      <button
-        className="action-btn primary"
-        style={{ width: '100%' }}
-        onClick={tryOn}
-        disabled={selected.length === 0}
-      >
-        ✳ {lang === 'ru' ? 'Примерить' : 'Try on'}
+      <button className="action-btn primary" style={{ width: '100%' }} onClick={tryOn} disabled={selected.length === 0 || isProcessing}>
+        {isProcessing
+          ? lang === 'ru' ? '⏳ AI работает...' : '⏳ AI processing...'
+          : `✳ ${lang === 'ru' ? 'Примерить' : 'Try on'}`}
       </button>
 
       {message && <div className="card muted" style={{ marginTop: 12 }}>{message}</div>}
