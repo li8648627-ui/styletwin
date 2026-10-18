@@ -68,7 +68,6 @@ const DRAW_ORDER: Record<string, number> = {
 const MAX_LAYERS = 5
 const TRYON_LIMIT = 3
 
-/* Формы одежды, сидящие на человеческой фигуре (viewBox 320×320) */
 function GarmentShape({ category }: { category: string }) {
   switch (category) {
     case 'tops': case 'shirts': case 'blouses': case 'tshirts': case 'sweaters': case 'hoodies':
@@ -360,53 +359,69 @@ export function TryOnPage({ onShowPro }: { onShowPro: (reason: ProReason) => voi
         ) : aiResult ? (
           <img src={aiResult} alt="AI try-on" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
         ) : mode === 'mannequin' ? (
-          /* ЧЕЛОВЕЧЕСКАЯ ФИГУРА + ОДЕЖДА ПО ФИГУРЕ */
-          <svg width="100%" height="320" viewBox="0 0 320 320" style={{ position: 'absolute', top: 0, left: 0, zIndex: 0 }}>
-            <defs>
-              <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#f0ebe3" />
-                <stop offset="50%" stopColor="#f7f2ea" />
-                <stop offset="100%" stopColor="#e8e0d5" />
-              </linearGradient>
-              {sortedSelected.map((it) =>
-                it.image_url ? (
-                  <pattern key={it.id} id={`pat-${it.id}`} patternUnits="objectBoundingBox" width="1" height="1">
-                    <image href={it.image_url} width="100%" height="100%" preserveAspectRatio="xMidYMid slice" />
-                  </pattern>
-                ) : null
-              )}
-            </defs>
+          /* МАНЕКЕН С 3D-ПОВОРОТОМ */
+          <div style={{ position: 'absolute', inset: 0, perspective: '900px' }}>
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                transform: isBack ? 'rotateY(180deg)' : 'rotateY(0deg)',
+                transition: 'transform 0.6s ease',
+                transformStyle: 'preserve-3d',
+              }}
+            >
+              <svg width="100%" height="320" viewBox="0 0 320 320" style={{ position: 'absolute', top: 0, left: 0 }}>
+                <defs>
+                  <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#f0ebe3" />
+                    <stop offset="50%" stopColor="#f7f2ea" />
+                    <stop offset="100%" stopColor="#e8e0d5" />
+                  </linearGradient>
+                  {sortedSelected.map((it) =>
+                    it.image_url ? (
+                      <pattern key={it.id} id={`pat-${it.id}`} patternUnits="objectBoundingBox" width="1" height="1">
+                        <image href={it.image_url} width="100%" height="100%" preserveAspectRatio="xMidYMid slice" />
+                      </pattern>
+                    ) : null
+                  )}
+                </defs>
 
-            {/* Фигура: голова, шея, торс, руки, НОГИ, стопы */}
-            <circle cx="160" cy="45" r="26" fill="url(#bodyGrad)" stroke="#d4c9b8" strokeWidth="2" />
-            <rect x="152" y="66" width="16" height="16" rx="6" fill="url(#bodyGrad)" stroke="#d4c9b8" strokeWidth="1.5" />
-            <path d="M 118 84 Q 160 76 202 84 L 196 178 Q 160 186 124 178 Z" fill="url(#bodyGrad)" stroke="#d4c9b8" strokeWidth="2" />
-            <path d="M 118 90 L 96 170 Q 93 178 99 181 Q 105 183 108 175 L 126 105 Z" fill="#f0ebe3" stroke="#d4c9b8" strokeWidth="2" />
-            <path d="M 202 90 L 224 170 Q 227 178 221 181 Q 215 183 212 175 L 194 105 Z" fill="#f0ebe3" stroke="#d4c9b8" strokeWidth="2" />
-            <path d="M 132 180 L 154 180 L 150 288 L 134 288 Z" fill="url(#bodyGrad)" stroke="#d4c9b8" strokeWidth="2" />
-            <path d="M 166 180 L 188 180 L 186 288 L 170 288 Z" fill="url(#bodyGrad)" stroke="#d4c9b8" strokeWidth="2" />
-            <ellipse cx="141" cy="292" rx="14" ry="6" fill="#f0ebe3" stroke="#d4c9b8" strokeWidth="1.5" />
-            <ellipse cx="179" cy="292" rx="14" ry="6" fill="#f0ebe3" stroke="#d4c9b8" strokeWidth="1.5" />
+                {/* Фигура человека */}
+                <circle cx="160" cy="45" r="26" fill="url(#bodyGrad)" stroke="#d4c9b8" strokeWidth="2" />
+                <rect x="152" y="66" width="16" height="16" rx="6" fill="url(#bodyGrad)" stroke="#d4c9b8" strokeWidth="1.5" />
+                <path d="M 118 84 Q 160 76 202 84 L 196 178 Q 160 186 124 178 Z" fill="url(#bodyGrad)" stroke="#d4c9b8" strokeWidth="2" />
+                <path d="M 118 90 L 96 170 Q 93 178 99 181 Q 105 183 108 175 L 126 105 Z" fill="#f0ebe3" stroke="#d4c9b8" strokeWidth="2" />
+                <path d="M 202 90 L 224 170 Q 227 178 221 181 Q 215 183 212 175 L 194 105 Z" fill="#f0ebe3" stroke="#d4c9b8" strokeWidth="2" />
+                <path d="M 132 180 L 154 180 L 150 288 L 134 288 Z" fill="url(#bodyGrad)" stroke="#d4c9b8" strokeWidth="2" />
+                <path d="M 166 180 L 188 180 L 186 288 L 170 288 Z" fill="url(#bodyGrad)" stroke="#d4c9b8" strokeWidth="2" />
+                <ellipse cx="141" cy="292" rx="14" ry="6" fill="#f0ebe3" stroke="#d4c9b8" strokeWidth="1.5" />
+                <ellipse cx="179" cy="292" rx="14" ry="6" fill="#f0ebe3" stroke="#d4c9b8" strokeWidth="1.5" />
 
-            {/* Одежда по фигуре */}
-            {sortedSelected.map((it) => {
-              const fill = it.image_url
-                ? `url(#pat-${it.id})`
-                : COLOR_HEX[(it.color ?? '').toLowerCase()] ?? '#d8c8a8'
-              return (
-                <g
-                  key={it.id}
-                  fill={fill}
-                  stroke="#b9a888"
-                  strokeWidth="1.5"
-                  opacity="0.95"
-                  transform={isBack ? 'translate(320,0) scale(-1,1)' : undefined}
-                >
-                  <GarmentShape category={it.category} />
-                </g>
-              )
-            })}
-          </svg>
+                {/* Детали спины: причёска с пучком + позвоночник */}
+                {isBack && (
+                  <>
+                    <path d="M 134 34 Q 160 14 186 34 L 189 60 Q 160 72 131 60 Z" fill="#e0d2b8" stroke="#c9b899" strokeWidth="1.5" />
+                    <circle cx="160" cy="22" r="9" fill="#e0d2b8" stroke="#c9b899" strokeWidth="1.5" />
+                    <path d="M 160 92 L 160 168" stroke="#d4c9b8" strokeWidth="1.5" strokeDasharray="4 4" fill="none" />
+                    <path d="M 140 100 Q 148 106 140 112" stroke="#d4c9b8" strokeWidth="1.2" fill="none" />
+                    <path d="M 180 100 Q 172 106 180 112" stroke="#d4c9b8" strokeWidth="1.2" fill="none" />
+                  </>
+                )}
+
+                {/* Одежда по фигуре (поворачивается вместе с манекеном через wrapper) */}
+                {sortedSelected.map((it) => {
+                  const fill = it.image_url
+                    ? `url(#pat-${it.id})`
+                    : COLOR_HEX[(it.color ?? '').toLowerCase()] ?? '#d8c8a8'
+                  return (
+                    <g key={it.id} fill={fill} stroke="#b9a888" strokeWidth="1.5" opacity="0.95">
+                      <GarmentShape category={it.category} />
+                    </g>
+                  )
+                })}
+              </svg>
+            </div>
+          </div>
         ) : photo ? (
           <>
             <img src={photo} alt="My photo" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'contain', zIndex: 0 }} />
