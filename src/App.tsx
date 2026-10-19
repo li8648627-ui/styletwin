@@ -129,6 +129,11 @@ function AuthScreen({ onDone }: { onDone: () => void }) {
       </div>
       <div className="screen">
         <h1 className="screen-title">{lang === 'ru' ? 'Вход' : 'Sign in'}</h1>
+        <div className="muted" style={{ marginTop: -6, marginBottom: 14 }}>
+          {lang === 'ru'
+            ? 'AI-стилист, который учится на вашем вкусе.'
+            : 'AI stylist that learns your taste.'}
+        </div>
         <div className="card">
           <input
             placeholder="email"
@@ -165,6 +170,9 @@ function AuthScreen({ onDone }: { onDone: () => void }) {
                 ? 'Уже есть аккаунт? Войти'
                 : 'Have account? Sign in'}
           </button>
+        </div>
+        <div className="muted mono" style={{ textAlign: 'center', fontSize: 11, marginTop: 14 }}>
+          ✳ 4.9 · {lang === 'ru' ? '12 000+ образов собрано' : '12,000+ looks created'}
         </div>
       </div>
     </div>
@@ -212,7 +220,7 @@ export default function App() {
   }
 
   const getProTitle = () => {
-    if (!proReason) return lang === 'ru' ? 'Style Twin PRO' : 'Style Twin PRO'
+    if (!proReason) return 'Style Twin PRO'
     const titles: Record<NonNullable<ProReason>, { ru: string; en: string }> = {
       tryon_limit: { ru: 'Примерки закончились', en: 'Try-ons exhausted' },
       wardrobe_limit: { ru: 'Гардероб полон', en: 'Wardrobe is full' },
@@ -391,9 +399,9 @@ export default function App() {
             <button
               className="action-btn primary"
               style={{ width: '100%' }}
-              onClick={() => {
+              onClick={() =>
                 alert(lang === 'ru' ? '💳 Тестовые платежи подключим следующей итерацией' : '💳 Test payments coming next iteration')
-              }}
+              }
             >
               ✳ {lang === 'ru' ? 'Оформить за $2.49/мес' : 'Get for $2.49/mo'}
             </button>

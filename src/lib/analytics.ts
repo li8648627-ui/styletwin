@@ -13,7 +13,6 @@ export async function trackEvent(event: ActivationEvent, metadata: Record<string
     const { data: user } = await supabase.auth.getUser()
     if (!user?.user) return
 
-    // Проверяем, было ли уже такое событие (считаем только первое)
     const { data: existing } = await supabase
       .from('activation_events')
       .select('id')
@@ -22,7 +21,7 @@ export async function trackEvent(event: ActivationEvent, metadata: Record<string
       .limit(1)
       .maybeSingle()
 
-    if (existing) return // уже считали — не дублируем
+    if (existing) return
 
     await supabase.from('activation_events').insert({
       user_id: user.user.id,
