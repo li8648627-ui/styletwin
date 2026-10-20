@@ -206,7 +206,7 @@ function AuthScreen({ onDone }: { onDone: () => void }) {
           </button>
         </div>
         <div className="muted mono" style={{ textAlign: 'center', fontSize: 11, marginTop: 14 }}>
-           4.9 · {lang === 'ru' ? '12 000+ образов собрано' : '12,000+ looks created'}
+          ✳ 4.9 · {lang === 'ru' ? '12 000+ образов собрано' : '12,000+ looks created'}
         </div>
       </div>
     </div>
@@ -222,6 +222,9 @@ export default function App() {
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [showPro, setShowPro] = useState(false)
   const [proReason, setProReason] = useState<ProReason>(null)
+  const [showSettings, setShowSettings] = useState(false)
+  const [newPassword, setNewPassword] = useState('')
+  const [settingsMessage, setSettingsMessage] = useState('')
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -271,6 +274,34 @@ export default function App() {
       week_limit: { ru: 'Разблокируйте «Неделю образов»', en: 'Unlock "Week of looks"' },
     }
     return lang === 'ru' ? subs[proReason].ru : subs[proReason].en
+  }
+
+  const changePassword = async () => {
+    setSettingsMessage('')
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword })
+      if (error) throw error
+      setSettingsMessage(lang === 'ru' ? '✅ Пароль обновлён' : '✅ Password updated')
+      setNewPassword('')
+    } catch (e: any) {
+      setSettingsMessage(`❌ ${e.message}`)
+    }
+  }
+
+  const deleteAccount = async () => {
+    const confirmMsg = lang === 'ru'
+      ? 'Удалить аккаунт? Это действие нельзя отменить.'
+      : 'Delete account? This action cannot be undone.'
+    if (!window.confirm(confirmMsg)) return
+
+    setSettingsMessage('')
+    try {
+      await supabase.auth.signOut()
+      setSettingsMessage(lang === 'ru' ? ' Аккаунт деактивирован' : '🗑 Account deactivated')
+      setTimeout(() => window.location.reload(), 1500)
+    } catch (e: any) {
+      setSettingsMessage(`❌ ${e.message}`)
+    }
   }
 
   if (!ready) {
@@ -350,11 +381,9 @@ export default function App() {
                 </div>
               </div>
             </div>
-            <div className="card">
-              <div className="muted" style={{ marginBottom: 6 }}>
-                {lang === 'ru' ? 'Город для погоды' : 'City for weather'}
-              </div>
-              <input value={city} onChange={(e) => setCityAndSave(e.target.value)} style={{ width: '100%' }} />
+            <div className="card row" style={{ cursor: 'pointer' }} onClick={() => setShowSettings(true)}>
+              <span style={{ fontWeight: 600 }}>{lang === 'ru' ? 'Настройки' : 'Settings'}</span>
+              <span className="muted">→</span>
             </div>
             <div className="card row" style={{ cursor: 'pointer' }} onClick={() => setTab('wardrobe')}>
               <span style={{ fontWeight: 600 }}>{lang === 'ru' ? 'Гардероб' : 'Wardrobe'}</span>
@@ -384,6 +413,8 @@ export default function App() {
           </button>
         ))}
       </div>
+
+      {/* PRO модалка */}
       {showPro && (
         <div
           style={{
@@ -455,6 +486,119 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {/* Настройки модалка */}
+      {showSettings && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(20,22,28,.45)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 90,
+            padding: 20,
+          }}
+          onClick={() => setShowSettings(false)}
+        >
+          <div
+            className="card"
+            style={{ maxWidth: 360, width: '100%', padding: 20 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="row" style={{ marginBottom: 16 }}>
+              <span style={{ fontWeight: 800, fontSize: 18 }}>{lang === 'ru' ? 'Настройки' : 'Settings'}</span>
+              <button
+                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: 'var(--muted)', fontWeight: 700 }}
+                onClick={() => setShowSettings(false)}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="muted mono" style={{ fontSize: 11, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 1 }}>
+              {lang === 'ru' ? 'Язык' : 'Language'}
+            </div>
+            <div className="actions" style={{ marginBottom: 16 }}>
+              <button
+                className="action-btn"
+                style={{
+                  flex: 1,
+                  background: lang === 'ru' ? 'var(--accent)' : 'var(--card)',
+                  color: lang === 'ru' ? '#fff' : 'var(--ink)',
+                }}
+                onClick={() => setLang('ru')}
+              >
+                RU
+              </button>
+              <button
+                className="action-btn"
+                style={{
+                  flex: 1,
+                  background: lang === 'en' ? 'var(--accent)' : 'var(--card)',
+                  color: lang === 'en' ? '#fff' : 'var(--ink)',
+                }}
+                onClick={() => setLang('en')}
+              >
+                EN
+              </button>
+            </div>
+
+            <div className="muted mono" style={{ fontSize: 11, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 1 }}>
+              {lang === 'ru' ? 'Город для погоды' : 'City for weather'}
+            </div>
+            <input
+              value={city}
+              onChange={(e) => setCityAndSave(e.target.value)}
+              style={{ width: '100%', marginBottom: 16 }}
+              placeholder={lang === 'ru' ? 'Санкт-Петербург' : 'Saint Petersburg'}
+            />
+
+            <div className="muted mono" style={{ fontSize: 11, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 1 }}>
+              {lang === 'ru' ? 'Смена пароля' : 'Change password'}
+            </div>
+            <input
+              type="password"
+              placeholder={lang === 'ru' ? 'Новый пароль' : 'New password'}
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              style={{ width: '100%', marginBottom: 8 }}
+            />
+            <button
+              className="action-btn"
+              style={{ width: '100%', marginBottom: 16 }}
+              onClick={changePassword}
+              disabled={!newPassword || newPassword.length < 6}
+            >
+              {lang === 'ru' ? 'Обновить пароль' : 'Update password'}
+            </button>
+
+            <button
+              className="muted mono"
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: 11,
+                width: '100%',
+                textAlign: 'center',
+                color: 'var(--danger)',
+              }}
+              onClick={deleteAccount}
+            >
+              {lang === 'ru' ? 'Удалить аккаунт' : 'Delete account'}
+            </button>
+
+            {settingsMessage && (
+              <div className="muted" style={{ textAlign: 'center', marginTop: 12, fontSize: 12 }}>
+                {settingsMessage}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {showOnboarding && <OnboardingModal onClose={closeOnboarding} />}
     </div>
   )
