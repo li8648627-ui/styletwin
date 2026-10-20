@@ -97,6 +97,7 @@ function AuthScreen({ onDone }: { onDone: () => void }) {
   const [mode, setMode] = useState<'login' | 'register'>('login')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const [resetSent, setResetSent] = useState(false)
 
   const submit = async () => {
     setError('')
@@ -110,6 +111,26 @@ function AuthScreen({ onDone }: { onDone: () => void }) {
         if (error) throw error
       }
       onDone()
+    } catch (e: any) {
+      setError(e.message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const forgot = async () => {
+    setError('')
+    if (!email) {
+      setError(lang === 'ru' ? 'Введите email, на который регистрировались' : 'Enter your registration email')
+      return
+    }
+    setBusy(true)
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin,
+      })
+      if (error) throw error
+      setResetSent(true)
     } catch (e: any) {
       setError(e.message)
     } finally {
@@ -170,9 +191,22 @@ function AuthScreen({ onDone }: { onDone: () => void }) {
                 ? 'Уже есть аккаунт? Войти'
                 : 'Have account? Sign in'}
           </button>
+          <button
+            className="muted mono"
+            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, width: '100%', marginTop: 10 }}
+            onClick={forgot}
+          >
+            {resetSent
+              ? lang === 'ru'
+                ? '📧 Ссылка отправлена — проверьте почту'
+                : '📧 Link sent — check your email'
+              : lang === 'ru'
+                ? 'Забыли пароль?'
+                : 'Forgot password?'}
+          </button>
         </div>
         <div className="muted mono" style={{ textAlign: 'center', fontSize: 11, marginTop: 14 }}>
-          ✳ 4.9 · {lang === 'ru' ? '12 000+ образов собрано' : '12,000+ looks created'}
+           4.9 · {lang === 'ru' ? '12 000+ образов собрано' : '12,000+ looks created'}
         </div>
       </div>
     </div>
